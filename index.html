@@ -36,7 +36,6 @@ body{
 #app{
   width:100%;
   max-width:var(--app-max);
-  /* Full height on phones, capped on tablets/desktop */
   height:100vh;
   height:100dvh;
   background:var(--paper);
@@ -45,7 +44,7 @@ body{
   position:relative;
   overflow:hidden;
 }
-/* Rounded card on larger screens (tablet/desktop preview) */
+/* The scroll area clips content, but nav + FAB are outside it so they stay visible */
 @media(min-width:500px){
   #app{border-radius:28px;height:min(92dvh,900px);box-shadow:0 0 80px rgba(0,0,0,.6);}
 }
@@ -89,11 +88,13 @@ body{
   background:var(--card);
   border-top:1px solid var(--border);
   display:flex;
-  align-items:stretch;
+  align-items:center;
   flex-shrink:0;
-  /* height adapts: base height + iPhone home indicator space */
   padding-bottom:var(--safe-bot);
   min-height:var(--bot-h);
+  overflow:visible; /* allows FAB to lift above the bar */
+  position:relative;
+  z-index:10;
 }
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:none;background:none;padding:.4rem 0 .2rem;transition:background .15s;}
 .bnav-item:active{background:var(--cream);}
@@ -103,11 +104,43 @@ body{
 .bnav-item.act-pretrip .bnav-label{color:#6c5ce7;font-weight:700;}
 .bnav-item.act-cur .bnav-label{color:var(--gold);font-weight:700;}
 .bnav-item.act-exp .bnav-label{color:var(--rust);font-weight:700;}
-/* FAB centre button */
-.bnav-fab{width:60px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:none;cursor:pointer;padding:0;position:relative;align-self:center;margin:0 .1rem;gap:2px;}
-.bnav-fab-icon{width:48px;height:48px;background:var(--gold);color:var(--ink);border-radius:50%;font-size:1.6rem;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 4px 18px rgba(184,149,42,.45);transition:transform .15s,background .15s;margin-top:-16px;}
+/* FAB — centre button, sits inside nav as a flex child */
+.bnav-fab-slot{display:none;} /* no longer needed */
+.bnav-fab{
+  flex-shrink:0;
+  width:56px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  border:none;
+  background:none;
+  cursor:pointer;
+  padding:0 0 var(--safe-bot) 0;
+  gap:0;
+  position:relative;
+  z-index:1;
+}
+.bnav-fab-icon{
+  width:50px;
+  height:50px;
+  background:var(--gold);
+  color:var(--ink);
+  border-radius:50%;
+  font-size:1.6rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+  box-shadow:0 4px 18px rgba(184,149,42,.5);
+  border:3px solid var(--paper);
+  transition:transform .15s,background .15s;
+  /* lift above nav bar */
+  margin-top:-18px;
+  flex-shrink:0;
+}
 .bnav-fab:active .bnav-fab-icon{transform:scale(.92);background:#a07f20;}
-.bnav-fab-label{font-size:.5rem;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+.bnav-fab-label{display:none;}
 
 /* ── HERO ── */
 .hero{position:relative;height:190px;overflow:hidden;flex-shrink:0;}
@@ -159,12 +192,21 @@ body{
 .ql-label{font-size:.8rem;font-weight:600;}
 .ql-sub{font-size:.62rem;color:var(--muted);margin-top:.06rem;}
 
-/* ── PHASE BAR ── */
-.phase-bar{display:flex;overflow-x:auto;gap:.4rem;padding:.7rem 1rem;background:var(--card);border-bottom:1px solid var(--border);scrollbar-width:none;position:sticky;top:0;z-index:5;}
-.phase-bar::-webkit-scrollbar{display:none;}
-.phase-pill{flex-shrink:0;font-size:.62rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.28rem .7rem;border-radius:20px;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s;}
-.phase-pill.ps{background:var(--seoul);color:#fff;border-color:var(--seoul);}
-.phase-pill.pj{background:var(--jeju);color:#fff;border-color:var(--jeju);}
+/* ── PHASE TABS (itinerary) ── */
+.phase-bar{display:grid;grid-template-columns:repeat(3,1fr);background:var(--ink);border-bottom:2px solid var(--ink);position:sticky;top:0;z-index:5;}
+.phase-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.65rem .3rem .55rem;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;gap:.08rem;}
+.phase-tab:active{background:rgba(255,255,255,.06);}
+.pt-city{font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6a6050;line-height:1;}
+.pt-dates{font-size:.58rem;color:#4a4030;margin-top:.1rem;letter-spacing:.02em;}
+.pt-active-seoul{border-bottom-color:var(--seoul);background:rgba(29,78,137,.15);}
+.pt-active-seoul .pt-city{color:#6ab0f5;}
+.pt-active-seoul .pt-dates{color:#4a90d9;}
+.pt-active-jeju{border-bottom-color:var(--jeju);background:rgba(30,107,69,.15);}
+.pt-active-jeju .pt-city{color:#3ddc84;}
+.pt-active-jeju .pt-dates{color:var(--jeju);}
+/* Day number chip */
+.day-num-chip{min-width:48px;flex-shrink:0;text-align:center;}
+.day-num-label{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:var(--border);line-height:1;}
 
 /* ── DAY CARDS ── */
 .day-list{display:flex;flex-direction:column;gap:.65rem;padding:.85rem .9rem 5rem;}
@@ -290,36 +332,51 @@ body{
 .bdg-range-sub{font-size:.58rem;color:var(--muted);margin-bottom:.45rem;}
 .bdg-tip{font-size:.68rem;color:var(--muted);line-height:1.45;font-style:italic;padding-top:.4rem;border-top:1px solid #f0ece6;}
 
-/* ── EXPENSES HERO ── */
-.exp-hero{background:var(--ink);padding:.75rem .9rem .7rem;}
-/* Top section — Total Spent + Credit Card */
-.exp-top-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;}
-.exp-top-lbl{font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:#6a6050;margin-bottom:.06rem;}
-.exp-top-val{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold);line-height:1;}
-.exp-top-sub{font-size:.58rem;color:#9a9080;margin-top:.05rem;}
-.exp-cc-block{text-align:right;}
-.exp-cc-val{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:#e07b4f;line-height:1;}
-/* Separator */
-.exp-hero-sep{height:1px;background:rgba(255,255,255,.1);margin-bottom:.5rem;}
-/* Bottom section — Cash | Wise | Remaining */
-.exp-bot-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:start;}
-.exp-bot-panel{}
-.exp-bot-lbl{font-size:.46rem;letter-spacing:.1em;text-transform:uppercase;color:#6a6050;margin-bottom:.05rem;}
-.exp-bot-val{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;color:var(--gold);line-height:1.1;}
-.exp-remain-val{color:var(--gold);}
-.exp-bot-sub{font-size:.48rem;color:#7a7060;margin-top:.04rem;}
-.exp-bot-divider{width:1px;background:rgba(255,255,255,.1);align-self:stretch;margin:0 .4rem;}
-/* Shared */
-.exp-cash-row{display:flex;align-items:center;gap:.15rem;}
-.cash-edit-btn{background:none;border:none;font-size:.6rem;cursor:pointer;padding:.03rem;opacity:.5;color:#fff;flex-shrink:0;}
-.cash-edit-btn:active{opacity:1;}
+/* ── EXPENSES HERO (unified) ── */
+.exp-hero{background:var(--ink);padding:.75rem .9rem .65rem;flex-shrink:0;}
+.exp-hero-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:.55rem;}
+.exp-hero-remain{flex:1;}
+.exp-hero-lbl{font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:#6a6050;margin-bottom:.1rem;}
+.exp-hero-big{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--green-bright);line-height:1;transition:color .3s;}
+.exp-hero-sub{font-size:.55rem;color:#7a7060;margin-top:.08rem;}
+.exp-hero-spent{text-align:right;padding-bottom:.1rem;}
+.exp-hero-spent-val{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:var(--gold);line-height:1;}
 /* Progress bar */
-.cash-bar-wrap{}
-.cash-bar-track{height:3px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin-bottom:.22rem;}
-.cash-bar-fill{height:100%;border-radius:3px;transition:width .5s,background .4s;background:var(--gold);}
-.cash-bar-fill.warn{background:#e07b4f;}
-.cash-bar-fill.danger{background:var(--rust);}
-.cash-bar-labels{display:flex;justify-content:space-between;font-size:.48rem;color:#6a6050;}
+.exp-prog-wrap{margin-bottom:.45rem;}
+.exp-prog-track{height:3px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;display:flex;margin-bottom:.2rem;}
+.exp-prog-seg{height:100%;transition:width .6s;}
+.exp-prog-labels{display:flex;justify-content:space-between;font-size:.48rem;color:#5a5040;}
+/* Wallet toggle */
+.wallet-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:.3rem 0 0;border-top:1px solid rgba(255,255,255,.06);margin-top:.1rem;}
+.wallet-toggle-lbl{font-size:.58rem;color:#7a7060;letter-spacing:.04em;}
+.wallet-toggle-arr{font-size:.6rem;color:#5a5040;transition:transform .2s;}
+.wallet-toggle-arr.open{transform:rotate(180deg);}
+/* Wallet expanded row */
+.wallet-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:start;padding:.5rem 0 .15rem;gap:.2rem;}
+.wallet-div{width:1px;background:rgba(255,255,255,.1);align-self:stretch;margin:0 .2rem;}
+.wallet-panel{}
+.wallet-lbl{font-size:.46rem;letter-spacing:.1em;text-transform:uppercase;color:#5a5040;margin-bottom:.05rem;}
+.wallet-val{font-family:'Cormorant Garamond',serif;font-size:.95rem;font-weight:700;color:var(--gold);line-height:1.1;display:flex;align-items:center;gap:.15rem;}
+.wallet-sub{font-size:.48rem;color:#6a6050;}
+.wallet-edit{background:none;border:none;font-size:.6rem;cursor:pointer;padding:0;opacity:.5;color:#fff;}
+.wallet-edit:active{opacity:1;}
+/* Sub-tabs */
+.exp-subtabs{display:flex;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0;}
+.exp-subtab{flex:1;padding:.65rem 1rem;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:500;color:var(--muted);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;letter-spacing:.02em;}
+.exp-subtab.active{color:var(--ink);border-bottom-color:var(--ink);font-weight:700;}
+/* Pre-trip pills bar */
+.pt-pills-bar{display:flex;overflow-x:auto;gap:.3rem;padding:.55rem .9rem;background:#faf8f5;border-bottom:1px solid var(--border);scrollbar-width:none;}
+.pt-pills-bar::-webkit-scrollbar{display:none;}
+.pt-cat-pill{font-size:.58rem;padding:.18rem .5rem;border-radius:12px;background:rgba(108,92,231,.12);color:#6c5ce7;white-space:nowrap;flex-shrink:0;}
+.pt-cat-pill span{font-weight:700;}
+/* Panel total sum strip */
+.panel-total-strip{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;background:var(--cream);border-bottom:1px solid var(--border);}
+.panel-total-lbl{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;}
+.panel-total-val{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:var(--ink);}
+.panel-total-rm{font-size:.72rem;font-weight:400;color:var(--muted);font-family:'DM Sans',sans-serif;}
+/* Notes textarea */
+.f-textarea{width:100%;padding:.52rem .65rem;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.83rem;background:var(--paper);color:var(--ink);outline:none;resize:none;min-height:60px;line-height:1.45;}
+.f-textarea:focus{border-color:var(--ink);}
 .cat-bars{padding:.8rem 1rem;background:var(--card);border-bottom:1px solid var(--border);}
 .cat-row{display:flex;align-items:center;gap:.55rem;margin-bottom:.45rem;}
 .cat-row:last-child{margin-bottom:0;}
@@ -349,6 +406,7 @@ body{
 .rgn-Jeju{background:#d4eddd;color:var(--jeju);}
 .exp-pay{font-size:.55rem;padding:.08rem .32rem;border-radius:3px;background:var(--cream);color:var(--muted);}
 .exp-amt{font-size:.78rem;font-weight:600;flex-shrink:0;}
+.exp-item-note{font-size:.62rem;color:var(--muted);margin-top:.08rem;font-style:italic;white-space:normal;line-height:1.3;}
 .exp-edit{background:none;border:none;color:var(--border);cursor:pointer;font-size:.72rem;padding:.08rem .18rem;flex-shrink:0;}
 .exp-edit:active{color:var(--ink);}
 .exp-del{background:none;border:none;color:var(--border);cursor:pointer;font-size:.78rem;padding:.08rem .22rem;flex-shrink:0;}
@@ -387,6 +445,31 @@ body{
 .pt-cat-pills{display:flex;flex-wrap:wrap;gap:.3rem;}
 .pt-cat-pill{font-size:.58rem;padding:.18rem .5rem;border-radius:12px;background:rgba(255,255,255,.08);color:#c4b8a8;white-space:nowrap;}
 .pt-cat-pill span{font-weight:700;color:var(--gold);}
+
+/* ── RECEIPT UPLOAD ── */
+.receipt-upload-row{display:flex;align-items:center;gap:.75rem;margin-top:.6rem;flex-wrap:wrap;}
+.receipt-upload-btn{display:inline-flex;align-items:center;gap:.4rem;font-size:.75rem;font-weight:500;color:var(--muted);border:1px dashed var(--border);border-radius:7px;padding:.45rem .85rem;cursor:pointer;background:var(--paper);transition:all .15s;white-space:nowrap;}
+.receipt-upload-btn:active{background:var(--cream);border-color:var(--ink);color:var(--ink);}
+.receipt-preview-wrap{position:relative;display:inline-flex;align-items:center;}
+.receipt-thumb{width:52px;height:52px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer;}
+.receipt-clear-btn{position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:var(--ink);color:#fff;border:none;font-size:.55rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+/* 📷 indicator in expense list */
+.exp-receipt-icon{font-size:.75rem;flex-shrink:0;opacity:.7;}
+/* ── RECEIPT DETAIL SHEET ── */
+.receipt-detail-sheet{padding-bottom:calc(1rem + var(--safe-bot));}
+.receipt-detail-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.85rem;}
+.receipt-detail-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;line-height:1.2;}
+.receipt-detail-meta{font-size:.65rem;color:var(--muted);margin-top:.2rem;}
+.receipt-detail-rows{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.9rem;padding:.65rem .75rem;background:var(--cream);border-radius:8px;}
+.rd-row{display:flex;justify-content:space-between;align-items:center;}
+.rd-lbl{font-size:.65rem;color:var(--muted);}
+.rd-val{font-size:.75rem;font-weight:600;}
+.receipt-img-wrap{border-radius:10px;overflow:hidden;background:#000;max-height:55dvh;}
+.receipt-full-img{width:100%;max-height:55dvh;object-fit:contain;display:block;touch-action:pinch-zoom;}
+.receipt-img-hint{font-size:.58rem;color:var(--muted);text-align:center;padding:.4rem 0 0;}
+.receipt-no-img{text-align:center;padding:2rem 1rem;color:var(--muted);}
+.receipt-no-img span{font-size:2rem;display:block;margin-bottom:.5rem;opacity:.4;}
+.receipt-no-img div{font-size:.8rem;}
 
 /* ── SCROLL TOP BTN ── */
 .scroll-top-btn{
@@ -549,78 +632,11 @@ body{
         </div>
         <div class="sec-hdr"><div class="sec-title">Quick Access</div></div>
         <div class="quick-grid">
-          <div class="ql" onclick="showPage('pretrip')"><div class="ql-ico">🧳</div><div><div class="ql-label">Pre-trip</div><div class="ql-sub">Flights, hotels, more</div></div></div>
-          <div class="ql" onclick="showPage('expenses')"><div class="ql-ico">📊</div><div><div class="ql-label">In-trip</div><div class="ql-sub">Daily KRW tracking</div></div></div>
+          <div class="ql" onclick="showPage('expenses');switchExpTab('pretrip')"><div class="ql-ico">🧳</div><div><div class="ql-label">Pre-trip</div><div class="ql-sub">Flights, hotels, more</div></div></div>
+          <div class="ql" onclick="showPage('expenses');switchExpTab('intrip')"><div class="ql-ico">📊</div><div><div class="ql-label">In-trip</div><div class="ql-sub">Daily KRW tracking</div></div></div>
           <div class="ql" onclick="showPage('currency')"><div class="ql-ico">💱</div><div><div class="ql-label">Currency</div><div class="ql-sub">RM ↔ KRW + guide</div></div></div>
           <div class="ql" onclick="showPage('itinerary')"><div class="ql-ico">🗓</div><div><div class="ql-label">Itinerary</div><div class="ql-sub">10-day plan</div></div></div>
         </div>
-      </div>
-    </div>
-
-    <!-- ══ PRE-TRIP ══ -->
-    <div id="page-pretrip" class="page">
-      <!-- Hero summary -->
-      <div class="pt-hero">
-        <div class="pt-hero-row">
-          <div>
-            <div class="pt-hero-lbl">Pre-trip Total</div>
-            <div class="pt-hero-val" id="pt-total-val">RM 0.00</div>
-            <div class="pt-hero-sub" id="pt-total-krw">≈ KRW 0</div>
-          </div>
-          <div class="pt-hero-right">
-            <div class="pt-hero-lbl">Items logged</div>
-            <div class="pt-hero-val" id="pt-count">0</div>
-            <div class="pt-hero-sub">expenses</div>
-          </div>
-        </div>
-        <!-- category breakdown pills -->
-        <div class="pt-cat-pills" id="pt-cat-pills"></div>
-      </div>
-
-      <!-- Add form -->
-      <div class="exp-form" style="border-top:none">
-        <div class="form-title">Add Pre-trip Expense</div>
-        <div class="f-group">
-          <label class="f-lbl">Description</label>
-          <input class="f-input" id="pt-desc" placeholder="e.g. AirAsia KUL–ICN return"/>
-        </div>
-        <div class="f-row">
-          <div class="f-group" style="margin-bottom:0">
-            <label class="f-lbl">Amount (RM MYR)</label>
-            <input class="f-input" id="pt-amt" type="number" inputmode="decimal" placeholder="1200.00"/>
-          </div>
-          <div class="f-group" style="margin-bottom:0">
-            <label class="f-lbl">Category</label>
-            <select class="f-select" id="pt-cat">
-              <option>✈️ Flights</option>
-              <option>🏨 Accommodation</option>
-              <option>🚗 Car Rental</option>
-              <option>🛡 Travel Insurance</option>
-              <option>🎫 Tours / Tickets</option>
-              <option>🪪 Visa Fees</option>
-              <option>📦 Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="f-row" style="margin-top:.45rem">
-          <div class="f-group" style="margin-bottom:0">
-            <label class="f-lbl">Payment Method</label>
-            <select class="f-select" id="pt-pay">
-              <option>💳 Credit Card</option><option>🌐 Wise</option><option>💵 Cash</option><option>🏦 Bank Transfer</option>
-            </select>
-          </div>
-          <div class="f-group" style="margin-bottom:0">
-            <label class="f-lbl">Date Paid</label>
-            <input class="f-input" id="pt-date" type="date"/>
-          </div>
-        </div>
-        <button class="btn-add" onclick="addPretrip()">+ Add Pre-trip Expense</button>
-      </div>
-
-      <!-- List -->
-      <div class="exp-list">
-        <div class="exp-list-title">Pre-trip Expenses</div>
-        <div id="pt-list-body"><div class="empty-state">No pre-trip expenses yet 🧳<br>Add flights, hotels & more above.</div></div>
       </div>
     </div>
 
@@ -662,133 +678,222 @@ body{
       <div class="bdg-list" id="bdg-list"></div>
     </div>
 
-    <!-- ══ EXPENSES ══ -->
+    <!-- ══ EXPENSES (unified: Pre-trip + In-trip) ══ -->
     <div id="page-expenses" class="page">
+
+      <!-- UNIFIED HERO -->
       <div class="exp-hero">
-
-        <!-- TOP: Total Spent (full width, prominent) -->
-        <div class="exp-top-row">
-          <div>
-            <div class="exp-top-lbl">Total Spent</div>
-            <div class="exp-top-val" id="tot-krw">KRW 0</div>
-            <div class="exp-top-sub" id="tot-rm">RM 0.00</div>
+        <!-- Row 1: Remaining (hero) + Total Spent -->
+        <div class="exp-hero-top">
+          <div class="exp-hero-remain">
+            <div class="exp-hero-lbl">Remaining</div>
+            <div class="exp-hero-big" id="eh-remain">—</div>
+            <div class="exp-hero-sub" id="eh-remain-sub">Set wallet to track</div>
           </div>
-          <div class="exp-cc-block">
-            <div class="exp-top-lbl">Credit Card 💳</div>
-            <div class="exp-cc-val" id="cc-spent">KRW 0</div>
-            <div class="exp-top-sub" id="cc-spent-rm">RM 0.00</div>
-          </div>
-        </div>
-
-        <!-- DIVIDER -->
-        <div class="exp-hero-sep"></div>
-
-        <!-- BOTTOM: Cash | Wise | Remaining (auto = Cash+Wise−Spent) -->
-        <div class="exp-bot-row">
-          <div class="exp-bot-panel">
-            <div class="exp-bot-lbl">Cash 💵</div>
-            <div class="exp-cash-row">
-              <div class="exp-bot-val" id="cash-balance">—</div>
-              <button class="cash-edit-btn" onclick="openCashModal()">✏️</button>
-            </div>
-            <div class="exp-bot-sub" id="cash-balance-sub">Tap to set</div>
-          </div>
-          <div class="exp-bot-divider"></div>
-          <div class="exp-bot-panel">
-            <div class="exp-bot-lbl">Wise 🌐</div>
-            <div class="exp-cash-row">
-              <div class="exp-bot-val" id="wise-balance">—</div>
-              <button class="cash-edit-btn" onclick="openWiseModal()">✏️</button>
-            </div>
-            <div class="exp-bot-sub" id="wise-balance-sub">Tap to set</div>
-          </div>
-          <div class="exp-bot-divider"></div>
-          <div class="exp-bot-panel">
-            <div class="exp-bot-lbl">Remaining</div>
-            <div class="exp-bot-val exp-remain-val" id="budget-remain">—</div>
-            <div class="exp-bot-sub" id="budget-remain-sub">Cash + Wise − Spent</div>
+          <div class="exp-hero-spent">
+            <div class="exp-hero-lbl">Total Spent</div>
+            <div class="exp-hero-spent-val" id="eh-total">RM 0</div>
+            <div class="exp-hero-sub" id="eh-total-sub">KRW 0 in-trip</div>
           </div>
         </div>
-
         <!-- Progress bar -->
-        <div class="cash-bar-wrap" style="margin-top:.5rem">
-          <div class="cash-bar-track"><div class="cash-bar-fill" id="cash-bar-fill"></div></div>
-          <div class="cash-bar-labels">
-            <span id="cash-bar-pct">—</span>
-            <span id="cash-budget-lbl">Set Cash or Wise to track</span>
+        <div class="exp-prog-wrap">
+          <div class="exp-prog-track">
+            <div class="exp-prog-seg" id="ep-pretrip" style="background:#6c5ce7;width:0%"></div>
+            <div class="exp-prog-seg" id="ep-intrip"  style="background:var(--gold);width:0%"></div>
+          </div>
+          <div class="exp-prog-labels">
+            <span id="ep-pct">—</span>
+            <span id="ep-budget">Set budget on Home</span>
+          </div>
+        </div>
+        <!-- Wallet row (collapsed by default) -->
+        <div class="wallet-toggle" onclick="toggleWallet()">
+          <span class="wallet-toggle-lbl" id="wallet-toggle-lbl">💼 Wallet details</span>
+          <span class="wallet-toggle-arr" id="wallet-arr">▾</span>
+        </div>
+        <div class="wallet-row" id="wallet-row" style="display:none">
+          <div class="wallet-panel">
+            <div class="wallet-lbl">Cash 💵</div>
+            <div class="wallet-val" id="w-cash">—</div>
+            <button class="wallet-edit" onclick="openCashModal()">✏️</button>
+          </div>
+          <div class="wallet-div"></div>
+          <div class="wallet-panel">
+            <div class="wallet-lbl">Wise 🌐</div>
+            <div class="wallet-val" id="w-wise">—</div>
+            <button class="wallet-edit" onclick="openWiseModal()">✏️</button>
+          </div>
+          <div class="wallet-div"></div>
+          <div class="wallet-panel">
+            <div class="wallet-lbl">CC 💳</div>
+            <div class="wallet-val" id="w-cc">KRW 0</div>
+            <div class="wallet-sub" id="w-cc-rm">RM 0.00</div>
           </div>
         </div>
       </div>
-      <div class="cat-bars" id="cat-bars"></div>
-      <div class="exp-form">
-        <div class="form-title">Add Expense</div>
-        <div class="f-group">
-          <label class="f-lbl">Description</label>
-          <input class="f-input" id="e-desc" placeholder="e.g. Bibimbap lunch"/>
-        </div>
-        <div class="f-row">
-          <div class="f-group" style="margin-bottom:0">
-            <label class="f-lbl">Amount (₩ KRW)</label>
-            <input class="f-input" id="e-amt" type="number" inputmode="numeric" placeholder="15000"/>
-          </div>
-          <div class="f-group" style="margin-bottom:0">
-            <label class="f-lbl">Category</label>
-            <select class="f-select" id="e-cat">
-              <option>Food</option><option>Transport</option><option>Accommodation</option>
-              <option>Shopping</option><option>Activities</option><option>Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="f-row" style="margin-top:.45rem">
-          <div class="f-group" style="margin-bottom:0">
-            <label class="f-lbl">Payment Method</label>
-            <select class="f-select" id="e-pay">
-              <option>💵 Cash</option><option>💳 Credit Card</option><option>🌐 Wise</option><option>📱 Other</option>
-            </select>
-          </div>
-          <div class="f-group" style="margin-bottom:0">
-            <label class="f-lbl">Region</label>
-            <select class="f-select" id="e-rgn"><option>Seoul</option><option>Jeju</option></select>
-          </div>
-        </div>
-        <div class="f-row" style="margin-top:.45rem">
-          <div class="f-group" style="margin-bottom:0">
-            <label class="f-lbl">Date</label>
-            <input class="f-input" id="e-date" type="date"/>
-          </div>
-          <div class="f-group" style="margin-bottom:0"></div>
-        </div>
-        <button class="btn-add" onclick="addExp()">+ Add Expense</button>
+
+      <!-- SUB-TABS -->
+      <div class="exp-subtabs">
+        <button class="exp-subtab active" id="subtab-pretrip" onclick="switchExpTab('pretrip')">🧳 Pre-trip</button>
+        <button class="exp-subtab" id="subtab-intrip" onclick="switchExpTab('intrip')">✈️ In-trip</button>
       </div>
-      <div class="exp-list">
-        <div class="exp-list-title">Transactions</div>
-        <div id="exp-list-body"><div class="empty-state">No expenses yet 🧾<br>Add your first one!</div></div>
+
+      <!-- PRE-TRIP PANEL -->
+      <div id="exp-panel-pretrip">
+        <!-- Pre-trip category breakdown bars + total -->
+        <div class="cat-bars" id="pt-cat-bars">
+          <div style="font-size:.72rem;color:var(--muted);text-align:center;padding:.4rem">Add pre-trip expenses to see breakdown</div>
+        </div>
+        <!-- Pre-trip total sum strip -->
+        <div class="panel-total-strip" id="pt-total-strip">
+          <span class="panel-total-lbl">Pre-trip Total</span>
+          <span class="panel-total-val" id="pt-total-display">RM 0.00</span>
+        </div>
+        <!-- Pre-trip form -->
+        <div class="exp-form">
+          <div class="form-title">Add Pre-trip Expense</div>
+          <div class="f-group">
+            <label class="f-lbl">Description</label>
+            <input class="f-input" id="pt-desc" placeholder="e.g. AirAsia KUL–ICN return"/>
+          </div>
+          <div class="f-group">
+            <label class="f-lbl">Details / Notes</label>
+            <textarea class="f-textarea" id="pt-notes" placeholder="e.g. Flight confirmed, departs 08:30, booking ref: ABC123"></textarea>
+          </div>
+          <div class="f-row">
+            <div class="f-group" style="margin-bottom:0">
+              <label class="f-lbl">Amount (RM MYR)</label>
+              <input class="f-input" id="pt-amt" type="number" inputmode="decimal" placeholder="1200.00"/>
+            </div>
+            <div class="f-group" style="margin-bottom:0">
+              <label class="f-lbl">Category</label>
+              <select class="f-select" id="pt-cat">
+                <option>✈️ Flights</option>
+                <option>🏨 Accommodation</option>
+                <option>🚗 Car Rental</option>
+                <option>🛡 Travel Insurance</option>
+                <option>🎫 Tours / Tickets</option>
+                <option>🪪 Visa Fees</option>
+                <option>📦 Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="f-row" style="margin-top:.45rem">
+            <div class="f-group" style="margin-bottom:0">
+              <label class="f-lbl">Payment Method</label>
+              <select class="f-select" id="pt-pay">
+                <option>💳 Credit Card</option><option>🌐 Wise</option><option>💵 Cash</option><option>🏦 Bank Transfer</option>
+              </select>
+            </div>
+            <div class="f-group" style="margin-bottom:0">
+              <label class="f-lbl">Date Paid</label>
+              <input class="f-input" id="pt-date" type="date"/>
+            </div>
+          </div>
+          <button class="btn-add" onclick="addPretrip()">+ Add Pre-trip Expense</button>
+        </div>
+        <!-- Pre-trip list -->
+        <div class="exp-list">
+          <div class="exp-list-title">Pre-trip Expenses</div>
+          <div id="pt-list-body"><div class="empty-state">No pre-trip expenses yet 🧳<br>Add flights, hotels &amp; more above.</div></div>
+        </div>
       </div>
-    </div>
+
+      <!-- IN-TRIP PANEL -->
+      <div id="exp-panel-intrip" style="display:none">
+        <!-- Category breakdown -->
+        <div class="cat-bars" id="cat-bars"></div>
+        <!-- In-trip total sum strip -->
+        <div class="panel-total-strip" id="it-total-strip">
+          <span class="panel-total-lbl">In-trip Total</span>
+          <span class="panel-total-val" id="it-total-display">KRW 0 <span class="panel-total-rm" id="it-total-rm">· RM 0.00</span></span>
+        </div>
+        <!-- In-trip form -->
+        <div class="exp-form">
+          <div class="form-title">Add In-trip Expense</div>
+          <div class="f-group">
+            <label class="f-lbl">Description</label>
+            <input class="f-input" id="e-desc" placeholder="e.g. Bibimbap lunch"/>
+          </div>
+          <div class="f-group">
+            <label class="f-lbl">Details / Notes</label>
+            <textarea class="f-textarea" id="e-notes" placeholder="e.g. Gwangjang Market, stall #12, shared with 2 pax"></textarea>
+          </div>
+          <div class="f-row">
+            <div class="f-group" style="margin-bottom:0">
+              <label class="f-lbl">Amount (KRW)</label>
+              <input class="f-input" id="e-amt" type="number" inputmode="numeric" placeholder="15000"/>
+            </div>
+            <div class="f-group" style="margin-bottom:0">
+              <label class="f-lbl">Category</label>
+              <select class="f-select" id="e-cat">
+                <option>Food</option><option>Transport</option><option>Accommodation</option>
+                <option>Shopping</option><option>Activities</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="f-row" style="margin-top:.45rem">
+            <div class="f-group" style="margin-bottom:0">
+              <label class="f-lbl">Payment Method</label>
+              <select class="f-select" id="e-pay">
+                <option>💵 Cash</option><option>💳 Credit Card</option><option>🌐 Wise</option><option>📱 Other</option>
+              </select>
+            </div>
+            <div class="f-group" style="margin-bottom:0">
+              <label class="f-lbl">Region</label>
+              <select class="f-select" id="e-rgn"><option>Seoul</option><option>Jeju</option></select>
+            </div>
+          </div>
+          <div class="f-row" style="margin-top:.45rem">
+            <div class="f-group" style="margin-bottom:0">
+              <label class="f-lbl">Date</label>
+              <input class="f-input" id="e-date" type="date"/>
+            </div>
+            <div class="f-group" style="margin-bottom:0"></div>
+          </div>
+          <button class="btn-add" onclick="addExp()">+ Add Expense</button>
+          <div class="receipt-upload-row">
+            <label class="receipt-upload-btn" for="e-receipt">
+              <span>📷</span> Attach Receipt
+            </label>
+            <input type="file" id="e-receipt" accept="image/*" capture="environment" style="display:none" onchange="previewReceipt('e-receipt','e-receipt-preview')"/>
+            <div class="receipt-preview-wrap" id="e-receipt-preview-wrap" style="display:none">
+              <img id="e-receipt-preview" class="receipt-thumb"/>
+              <button class="receipt-clear-btn" onclick="clearReceipt('e-receipt','e-receipt-preview','e-receipt-preview-wrap')">✕</button>
+            </div>
+          </div>
+        </div>
+        <!-- In-trip list -->
+        <div class="exp-list">
+          <div class="exp-list-title">Transactions</div>
+          <div id="exp-list-body"><div class="empty-state">No expenses yet 🧾<br>Add your first one!</div></div>
+        </div>
+      </div>
+
+    </div><!-- /page-expenses -->
 
   </div><!-- /page-scroll -->
 
-  <!-- SCROLL-TO-TOP BTN (FIX 5) -->
+  <!-- SCROLL-TO-TOP BTN -->
   <button class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()" aria-label="Scroll to top">↑</button>
 
-  <!-- BOTTOM NAV -->
+  <!-- BOTTOM NAV — outside page-scroll, stays pinned always -->
   <nav class="bottom-nav">
     <button class="bnav-item act-home" data-p="home" onclick="showPage('home')">
       <span class="bnav-icon">🏠</span><span class="bnav-label">Home</span>
     </button>
-    <button class="bnav-item" data-p="pretrip" onclick="showPage('pretrip')">
-      <span class="bnav-icon">🧳</span><span class="bnav-label">Pre-trip</span>
+    <button class="bnav-item" data-p="currency" onclick="showPage('currency')">
+      <span class="bnav-icon">💱</span><span class="bnav-label">Currency</span>
     </button>
-    <!-- FAB centre button -->
     <button class="bnav-fab" onclick="openQuickAdd()" aria-label="Quick add expense">
       <span class="bnav-fab-icon">＋</span>
-      <span class="bnav-fab-label">Add</span>
     </button>
     <button class="bnav-item" data-p="itinerary" onclick="showPage('itinerary')">
       <span class="bnav-icon">🗓</span><span class="bnav-label">Itinerary</span>
     </button>
     <button class="bnav-item" data-p="expenses" onclick="showPage('expenses')">
-      <span class="bnav-icon">📊</span><span class="bnav-label">In-trip</span>
+      <span class="bnav-icon">📊</span><span class="bnav-label">Expenses</span>
     </button>
   </nav>
 
@@ -983,6 +1088,10 @@ body{
           <label class="modal-lbl">Description</label>
           <input class="modal-input qa-input-lg" id="qa-desc" placeholder="e.g. Bibimbap at Gwangjang Market" autofocus/>
         </div>
+        <div class="modal-group">
+          <label class="modal-lbl">Details / Notes</label>
+          <textarea class="modal-textarea" id="qa-notes" placeholder="e.g. Shared with 2 pax, near exit 8"></textarea>
+        </div>
         <div class="qa-amount-row">
           <div class="modal-group" style="flex:1">
             <label class="modal-lbl">Amount</label>
@@ -1027,9 +1136,45 @@ body{
           <button class="qa-chip" onclick="setQaCat('Accommodation')">🏨 Hotel</button>
           <button class="qa-chip" onclick="setQaCat('Other')">📦 Other</button>
         </div>
+        <!-- Receipt upload -->
+        <div class="receipt-upload-row" style="margin-top:.5rem">
+          <label class="receipt-upload-btn" for="qa-receipt">
+            <span>📷</span> Attach Receipt
+          </label>
+          <input type="file" id="qa-receipt" accept="image/*" capture="environment" style="display:none" onchange="previewReceipt('qa-receipt','qa-receipt-preview')"/>
+          <div class="receipt-preview-wrap" id="qa-receipt-preview-wrap" style="display:none">
+            <img id="qa-receipt-preview" class="receipt-thumb"/>
+            <button class="receipt-clear-btn" onclick="clearReceipt('qa-receipt','qa-receipt-preview','qa-receipt-preview-wrap')">✕</button>
+          </div>
+        </div>
       </div>
       <div class="qa-footer">
         <button class="qa-submit" onclick="submitQuickAdd()">＋ Add Expense</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECEIPT DETAIL MODAL -->
+  <div class="modal-overlay" id="receiptModal" onclick="closeReceiptModal(event)">
+    <div class="modal-sheet receipt-detail-sheet">
+      <div class="modal-handle"></div>
+      <div class="receipt-detail-header">
+        <div>
+          <div class="receipt-detail-title" id="rd-title">—</div>
+          <div class="receipt-detail-meta" id="rd-meta">—</div>
+        </div>
+        <button class="qa-close" onclick="closeReceiptModal()">✕</button>
+      </div>
+      <!-- detail rows -->
+      <div class="receipt-detail-rows" id="rd-rows"></div>
+      <!-- image -->
+      <div class="receipt-img-wrap" id="rd-img-wrap">
+        <img id="rd-img" class="receipt-full-img"/>
+        <div class="receipt-img-hint">Pinch to zoom · Tap outside to close</div>
+      </div>
+      <div class="receipt-no-img" id="rd-no-img" style="display:none">
+        <span>📄</span>
+        <div>No receipt attached</div>
       </div>
     </div>
   </div>
@@ -1060,6 +1205,10 @@ body{
       <div class="modal-group">
         <label class="modal-lbl">Description</label>
         <input class="modal-input" id="pte-desc"/>
+      </div>
+      <div class="modal-group">
+        <label class="modal-lbl">Details / Notes</label>
+        <textarea class="modal-textarea" id="pte-notes" placeholder="Booking ref, confirmation, notes..."></textarea>
       </div>
       <div class="modal-row">
         <div class="modal-group">
@@ -1276,7 +1425,7 @@ function showPage(id){
   document.querySelectorAll('.bnav-item').forEach(b=>b.className='bnav-item');
   document.getElementById('page-'+id).classList.add('active');
   const btn=document.querySelector(`[data-p="${id}"]`);
-  const clsMap={home:'home',pretrip:'pretrip',itinerary:'itin',currency:'cur',expenses:'exp'};
+  const clsMap={home:'home',itinerary:'itin',currency:'cur',expenses:'exp'};
   if(btn) btn.classList.add('act-'+(clsMap[id]||id));
   document.getElementById('mainScroll').scrollTop=0;
   document.getElementById('scrollTopBtn').classList.remove('visible');
@@ -1298,23 +1447,36 @@ function tbadge(t){return `<span class="tbadge ${TR_CLS[t]||'tb-subway'}">${TR_I
 
 // ─── RENDER ITINERARY ─────────────────────
 function renderItinerary(){
-  // Phase pills
+  // ── Phase tabs (prominent, full-width style) ──
   const phases=[
-    {label:'Seoul · Nov 20–23',firstDay:1,cls:'ps'},
-    {label:'Jeju · Nov 23–28',firstDay:4,cls:'pj'},
-    {label:'Seoul · Nov 28–29',firstDay:9,cls:'ps'},
+    {label:'Seoul',dates:'Nov 20–23', firstDay:1, lastDay:3, cls:'ps', days:[1,2,3,4]},
+    {label:'Jeju', dates:'Nov 23–28', firstDay:4, lastDay:8, cls:'pj', days:[4,5,6,7,8,9]},
+    {label:'Seoul',dates:'Nov 28–29', firstDay:9, lastDay:10,cls:'ps', days:[9,10]},
   ];
-  document.getElementById('phase-bar').innerHTML=phases.map((p,i)=>
-    `<div class="phase-pill ${i===0?p.cls:''}" onclick="scrollToDay(${p.firstDay},this,'${p.cls}')">${p.label}</div>`
-  ).join('');
+  // Track active phase
+  if(typeof window._activePhase==='undefined') window._activePhase=0;
 
-  // Day cards
-  document.getElementById('all-days').innerHTML=DAYS.map(d=>{
-    const chipCls=d.region==='Jeju'?'jeju-chip':d.region.includes('→')?'trans-chip':'seoul-chip';
-    const regionColor=d.region==='Jeju'?'var(--jeju)':d.region.includes('→')?'#8a6000':'var(--seoul)';
-    const tagHtml=d.tags.map(t=>`<span class="tag tag-${t}">${t}</span>`).join('');
+  document.getElementById('phase-bar').innerHTML=phases.map((p,i)=>`
+    <div class="phase-tab ${window._activePhase===i?(p.cls==='ps'?'pt-active-seoul':'pt-active-jeju'):''}"
+         onclick="setPhase(${i})">
+      <div class="pt-city">${p.label}</div>
+      <div class="pt-dates">${p.dates}</div>
+    </div>`).join('');
 
-    // Accommodation strip — now editable
+  // ── Filter days by active phase ──
+  const activeDays = DAYS.filter(d=>phases[window._activePhase].days.includes(d.n));
+
+  // ── Day cards ──
+  document.getElementById('all-days').innerHTML=activeDays.map(d=>{
+    const isSeoul = d.region==='Seoul' || (d.region.includes('→') && d.region.startsWith('Seoul'));
+    const isJeju  = d.region==='Jeju'  || (d.region.includes('→') && d.region.startsWith('Jeju'));
+    const regionColor = isJeju ? 'var(--jeju)' : d.region.includes('→') ? '#8a6000' : 'var(--seoul)';
+    const tagHtml = d.tags.map(t=>`<span class="tag tag-${t}">${t}</span>`).join('');
+
+    // Region + date shown inline with city
+    const regionDateLbl = `${d.region.includes('→') ? d.region : d.region.toUpperCase()} (${d.date} ${d.day} ${d.mon})`;
+
+    // Accommodation strip
     const accomHtml=`<div class="accom-strip">
       <span style="font-size:.95rem">🏨</span>
       <div class="accom-main">
@@ -1327,7 +1489,7 @@ function renderItinerary(){
       <button class="act-edit-btn accom-edit-btn" onclick="openAccomEdit(${d.n})" title="Edit accommodation">✏️</button>
     </div>`;
 
-    // Activities with edit + remove
+    // Activities
     const actsHtml=d.acts.map((a,ai)=>`
       <div class="activity" id="act-${d.n}-${ai}">
         <div class="act-time">${a.t}</div>
@@ -1343,7 +1505,7 @@ function renderItinerary(){
           <div class="act-meta">
             ${tbadge(a.tr)}
             <span class="stn-pill">🚉 ${a.stn}</span>
-            ${a.cost>0?`<span class="act-cost">₩${a.cost.toLocaleString()}</span>`:'<span class="free-badge">Free</span>'}
+            ${a.cost>0?`<span class="act-cost">KRW ${a.cost.toLocaleString()}</span>`:'<span class="free-badge">Free</span>'}
           </div>
           <div class="map-row">
             <a class="map-btn" href="${a.gm}" target="_blank">📍 Google Maps</a>
@@ -1353,16 +1515,13 @@ function renderItinerary(){
         </div>
       </div>`).join('');
 
-    // Add activity button at bottom of day
-    const addActBtn=`<div class="add-act-row">
-      <button class="add-act-btn" onclick="openAddAct(${d.n})">＋ Add Activity</button>
-    </div>`;
-
     return `<div class="day-card" id="day-${d.n}">
       <div class="day-hdr" onclick="toggleDay(${d.n})">
-        <div class="day-date-chip ${chipCls}">${d.date}<br>${d.day}<br>${d.mon}</div>
+        <div class="day-num-chip">
+          <div class="day-num-label">Day ${d.n}</div>
+        </div>
         <div class="day-info">
-          <div class="day-region-lbl" style="color:${regionColor}">${d.region}</div>
+          <div class="day-region-lbl" style="color:${regionColor}">${regionDateLbl}</div>
           <div class="day-theme">${d.theme}</div>
           <div class="day-tags">${tagHtml}</div>
         </div>
@@ -1371,10 +1530,18 @@ function renderItinerary(){
       <div class="day-body" id="dbody-${d.n}">
         ${accomHtml}
         <div>${actsHtml}</div>
-        ${addActBtn}
+        <div class="add-act-row">
+          <button class="add-act-btn" onclick="openAddAct(${d.n})">＋ Add Activity</button>
+        </div>
       </div>
     </div>`;
   }).join('');
+}
+
+function setPhase(idx){
+  window._activePhase=idx;
+  renderItinerary();
+  document.getElementById('mainScroll').scrollTop=0;
 }
 
 function toggleDay(n){
@@ -1643,6 +1810,7 @@ function saveWiseBal(){
 // ── Quick-add (FAB) ──
 function openQuickAdd(){
   document.getElementById('qa-desc').value='';
+  document.getElementById('qa-notes').value='';
   document.getElementById('qa-amt').value='';
   document.getElementById('qa-cat').value='Food';
   document.getElementById('qa-pay').value='💵 Cash';
@@ -1664,20 +1832,24 @@ function setQaCat(cat){
     c.classList.toggle('selected', c.textContent.includes(cat));
   });
 }
-function submitQuickAdd(){
+async function submitQuickAdd(){
   const desc=document.getElementById('qa-desc').value.trim();
   const amt=parseFloat(document.getElementById('qa-amt').value);
   if(!desc||!amt||amt<=0){toast('Please enter description & amount');return;}
+  const notes=document.getElementById('qa-notes').value.trim();
+  const receipt = await getCompressedImage('qa-receipt');
   expenses.push({
     id:Date.now(),
-    desc,amt,
+    desc,notes,amt,
     cat:document.getElementById('qa-cat').value,
     pay:document.getElementById('qa-pay').value,
     rgn:document.getElementById('qa-rgn').value,
     date:document.getElementById('qa-date').value||new Date().toISOString().slice(0,10),
+    receipt,
   });
   saveExp();
   document.getElementById('quickAddModal').classList.remove('open');
+  clearReceipt('qa-receipt','qa-receipt-preview','qa-receipt-preview-wrap');
   renderExp(); updateHome();
   toast(`Added KRW ${amt.toLocaleString()} ✓`);
 }
@@ -1770,78 +1942,99 @@ function saveTxnEdit(){
   toast('Transaction updated ✓');
 }
 
-function addExp(){
+async function addExp(){
   const desc = document.getElementById('e-desc').value.trim();
   const amt  = parseFloat(document.getElementById('e-amt').value);
+  const notes= document.getElementById('e-notes').value.trim();
   const cat  = document.getElementById('e-cat').value;
   const pay  = document.getElementById('e-pay').value;
   const rgn  = document.getElementById('e-rgn').value;
   const date = document.getElementById('e-date').value || new Date().toISOString().slice(0,10);
   if(!desc||!amt||amt<=0){toast('Please enter description & amount');return;}
-  expenses.push({id:Date.now(),desc,amt,cat,pay,rgn,date});
+  const receipt = await getCompressedImage('e-receipt');
+  expenses.push({id:Date.now(),desc,notes,amt,cat,pay,rgn,date,receipt});
   saveExp();
   document.getElementById('e-desc').value='';
+  document.getElementById('e-notes').value='';
   document.getElementById('e-amt').value='';
+  clearReceipt('e-receipt','e-receipt-preview','e-receipt-preview-wrap');
   renderExp(); updateHome();
-  toast(`Added ₩${amt.toLocaleString()} · ${cat}`);
+  toast(`Added KRW ${amt.toLocaleString()} · ${cat}`);
 }
 function delExp(id){
   expenses=expenses.filter(e=>e.id!==id);
   saveExp(); renderExp(); updateHome();
 }
 
+// ─── SUB-TAB SWITCHER ────────────────────
+function switchExpTab(tab){
+  document.getElementById('exp-panel-pretrip').style.display = tab==='pretrip' ? 'block' : 'none';
+  document.getElementById('exp-panel-intrip').style.display  = tab==='intrip'  ? 'block' : 'none';
+  document.getElementById('subtab-pretrip').className = 'exp-subtab'+(tab==='pretrip'?' active':'');
+  document.getElementById('subtab-intrip').className  = 'exp-subtab'+(tab==='intrip' ?' active':'');
+}
+
+// ─── WALLET TOGGLE ────────────────────────
+let walletOpen = false;
+function toggleWallet(){
+  walletOpen = !walletOpen;
+  document.getElementById('wallet-row').style.display = walletOpen ? 'grid' : 'none';
+  document.getElementById('wallet-arr').className = 'wallet-toggle-arr'+(walletOpen?' open':'');
+  document.getElementById('wallet-toggle-lbl').textContent = walletOpen ? '💼 Wallet details' : '💼 Wallet details';
+}
+
 function renderExp(){
   const total = expenses.reduce((s,e)=>s+e.amt,0);
+  const intripRM = total / RATE;
+  const pretripRM = pretripExpenses.reduce((s,e)=>s+e.amt,0);
+  const combinedRM = intripRM + pretripRM;
 
-  // ── Row 1: Total Spent ──
-  document.getElementById('tot-krw').textContent = 'KRW '+total.toLocaleString();
-  document.getElementById('tot-rm').textContent  = 'RM '+(total/RATE).toFixed(2);
+  // ── Hero: Remaining ──
+  const wallet = cashBalance + wiseBalance;
+  const remEl = document.getElementById('eh-remain');
+  if(wallet > 0){
+    const rem = wallet - total;
+    remEl.textContent = rem>=0 ? 'KRW '+rem.toLocaleString() : '-KRW '+Math.abs(rem).toLocaleString();
+    remEl.style.color = rem<0 ? 'var(--rust)' : rem < wallet*0.15 ? '#e07b4f' : 'var(--green-bright)';
+    document.getElementById('eh-remain-sub').textContent = rem>=0
+      ? '≈ RM '+(rem/RATE).toFixed(2)+' left'
+      : '⚠️ Over wallet balance';
+  } else {
+    remEl.textContent='—'; remEl.style.color='#5a5040';
+    document.getElementById('eh-remain-sub').textContent='Set wallet to track';
+  }
 
-  // ── Row 1: Credit Card spent ──
+  // ── Hero: Total Spent ──
+  document.getElementById('eh-total').textContent = 'RM '+combinedRM.toFixed(2);
+  document.getElementById('eh-total-sub').textContent = 'KRW '+total.toLocaleString()+' in-trip';
+
+  // ── Progress bar (vs trip budget on Home) ──
+  if(tripBudgetRM > 0){
+    const ptPct = Math.min((pretripRM/tripBudgetRM)*100,100);
+    const itPct = Math.min((intripRM/tripBudgetRM)*100,100-ptPct);
+    document.getElementById('ep-pretrip').style.width = ptPct.toFixed(1)+'%';
+    document.getElementById('ep-intrip').style.width  = itPct.toFixed(1)+'%';
+    const used = Math.min((combinedRM/tripBudgetRM)*100,100);
+    document.getElementById('ep-pct').textContent = used.toFixed(0)+'% of trip budget';
+    document.getElementById('ep-budget').textContent = 'Budget: RM '+tripBudgetRM.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  } else {
+    document.getElementById('ep-pretrip').style.width='0%';
+    document.getElementById('ep-intrip').style.width='0%';
+    document.getElementById('ep-pct').textContent='—';
+    document.getElementById('ep-budget').textContent='Set budget on Home';
+  }
+
+  // ── Wallet row (collapsed) ──
+  document.getElementById('w-cash').textContent = cashBalance>0 ? 'KRW '+cashBalance.toLocaleString() : '—';
+  document.getElementById('w-wise').textContent = wiseBalance>0 ? 'KRW '+wiseBalance.toLocaleString() : '—';
   const ccTotal = expenses.filter(e=>e.pay==='💳 Credit Card').reduce((s,e)=>s+e.amt,0);
-  document.getElementById('cc-spent').textContent    = 'KRW '+ccTotal.toLocaleString();
-  document.getElementById('cc-spent-rm').textContent = 'RM '+(ccTotal/RATE).toFixed(2);
+  document.getElementById('w-cc').textContent    = 'KRW '+ccTotal.toLocaleString();
+  document.getElementById('w-cc-rm').textContent = 'RM '+(ccTotal/RATE).toFixed(2);
 
-  // ── Row 2: Cash balance ──
-  if(cashBalance>0){
-    document.getElementById('cash-balance').textContent     = 'KRW '+cashBalance.toLocaleString();
-    document.getElementById('cash-balance-sub').textContent = 'RM '+(cashBalance/RATE).toFixed(2);
-  } else {
-    document.getElementById('cash-balance').textContent     = '—';
-    document.getElementById('cash-balance-sub').textContent = 'Tap to set';
-  }
-
-  // ── Row 2: Wise balance ──
-  if(wiseBalance>0){
-    document.getElementById('wise-balance').textContent     = 'KRW '+wiseBalance.toLocaleString();
-    document.getElementById('wise-balance-sub').textContent = 'RM '+(wiseBalance/RATE).toFixed(2);
-  } else {
-    document.getElementById('wise-balance').textContent     = '—';
-    document.getElementById('wise-balance-sub').textContent = 'Tap to set';
-  }
-
-  // ── Bottom: Remaining = (Cash + Wise) − Spent ──
-  const totalBudget = cashBalance + wiseBalance;
-  const remEl = document.getElementById('budget-remain');
-  if(totalBudget > 0){
-    const rem = totalBudget - total;
-    remEl.textContent  = rem>=0 ? 'KRW '+rem.toLocaleString() : '-KRW '+Math.abs(rem).toLocaleString();
-    remEl.style.color  = rem<0 ? 'var(--rust)' : 'var(--gold)';
-    document.getElementById('budget-remain-sub').textContent = rem>=0
-      ? 'RM '+(rem/RATE).toFixed(2)+' left'
-      : '⚠️ Over budget!';
-    const pct = Math.min((total/totalBudget)*100,100);
-    const fill = document.getElementById('cash-bar-fill');
-    fill.style.width  = pct.toFixed(1)+'%';
-    fill.className    = 'cash-bar-fill'+(pct>=90?' danger':pct>=70?' warn':'');
-    document.getElementById('cash-bar-pct').textContent    = pct.toFixed(0)+'% of budget used';
-    document.getElementById('cash-budget-lbl').textContent = 'Budget: KRW '+totalBudget.toLocaleString();
-  } else {
-    remEl.textContent = '—'; remEl.style.color = 'var(--gold)';
-    document.getElementById('budget-remain-sub').textContent = 'Cash + Wise − Spent';
-    document.getElementById('cash-bar-fill').style.width    = '0%';
-    document.getElementById('cash-bar-pct').textContent     = '—';
-    document.getElementById('cash-budget-lbl').textContent  = 'Set Cash or Wise to track';
+  // ── In-trip total strip ──
+  const itStripEl = document.getElementById('it-total-display');
+  if(itStripEl){
+    itStripEl.innerHTML = 'KRW '+total.toLocaleString()+' <span class="panel-total-rm" id="it-total-rm">· RM '+(total/RATE).toFixed(2)+'</span>';
   }
 
   // ── Category bars ──
@@ -1862,16 +2055,20 @@ function renderExp(){
   if(!expenses.length){listEl.innerHTML='<div class="empty-state">No expenses yet 🧾<br>Add your first one!</div>';return;}
   const PAY_ICON = {'💵 Cash':'💵','💳 Credit Card':'💳','🌐 Wise':'🌐','📱 Other':'📱'};
   listEl.innerHTML = [...expenses].sort((a,b)=>b.id-a.id).slice(0,60).map(e=>`
-    <div class="exp-item">
+    <div class="exp-item" onclick="openReceiptDetail(${e.id})" style="cursor:pointer">
       <div class="exp-dot" style="background:${CAT_COLORS[e.cat]}"></div>
-      <div class="exp-desc">${e.desc}</div>
+      <div class="exp-desc">
+        <div>${e.desc}</div>
+        ${e.notes?`<div class="exp-item-note">${e.notes}</div>`:''}
+      </div>
       <div class="exp-badges">
         <span class="exp-pay">${PAY_ICON[e.pay]||'💳'}</span>
         <span class="exp-rgn rgn-${e.rgn}">${e.rgn}</span>
       </div>
+      ${e.receipt ? '<span class="exp-receipt-icon">📷</span>' : ''}
       <div class="exp-amt">KRW ${e.amt.toLocaleString()}</div>
-      <button class="exp-edit" onclick="openTxnEdit(${e.id})" title="Edit">✏️</button>
-      <button class="exp-del" onclick="delExp(${e.id})">✕</button>
+      <button class="exp-edit" onclick="event.stopPropagation();openTxnEdit(${e.id})" title="Edit">✏️</button>
+      <button class="exp-del" onclick="event.stopPropagation();delExp(${e.id})">✕</button>
     </div>`).join('');
 }
 function updateHome(){
@@ -1939,28 +2136,35 @@ const PT_CAT_COLOR = {
   '🛡 Travel Insurance':'#fd79a8','🎫 Tours / Tickets':'#fdcb6e',
   '🪪 Visa Fees':'#e17055','📦 Other':'#a0a0a0'
 };
+// Strip emojis for display in progress bars
+function stripEmoji(str){ return str.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu,'').trim(); }
 
 function addPretrip(){
   const desc = document.getElementById('pt-desc').value.trim();
   const amt  = parseFloat(document.getElementById('pt-amt').value);
+  const notes= document.getElementById('pt-notes').value.trim();
   const cat  = document.getElementById('pt-cat').value;
   const pay  = document.getElementById('pt-pay').value;
   const date = document.getElementById('pt-date').value || new Date().toISOString().slice(0,10);
   if(!desc||!amt||amt<=0){toast('Please enter description & amount');return;}
-  pretripExpenses.push({id:Date.now(),desc,amt,cat,pay,date});
+  pretripExpenses.push({id:Date.now(),desc,notes,amt,cat,pay,date});
   savePT();
   document.getElementById('pt-desc').value='';
+  document.getElementById('pt-notes').value='';
   document.getElementById('pt-amt').value='';
   renderPretrip(); updateHome();
   toast('Added RM '+amt.toFixed(2)+' · '+cat);
 }
 function savePT(){ localStorage.setItem('ktrip_pretrip',JSON.stringify(pretripExpenses)); }
 
+function openPtDetail(id){ openPtEdit(id); } // tapping row opens edit sheet
+
 let ptEditId=null;
 function openPtEdit(id){
   const e=pretripExpenses.find(x=>x.id===id); if(!e) return;
   ptEditId=id;
   document.getElementById('pte-desc').value=e.desc;
+  document.getElementById('pte-notes').value=e.notes||'';
   document.getElementById('pte-amt').value=e.amt;
   document.getElementById('pte-cat').value=e.cat;
   document.getElementById('pte-pay').value=e.pay;
@@ -1978,6 +2182,7 @@ function savePtEdit(){
   pretripExpenses[idx]={
     ...pretripExpenses[idx],
     desc:document.getElementById('pte-desc').value.trim(),
+    notes:document.getElementById('pte-notes').value.trim(),
     amt, cat:document.getElementById('pte-cat').value,
     pay:document.getElementById('pte-pay').value,
     date:document.getElementById('pte-date').value,
@@ -1992,36 +2197,128 @@ function delPretrip(id){
   savePT(); renderPretrip(); updateHome();
 }
 function renderPretrip(){
-  const total=pretripExpenses.reduce((s,e)=>s+e.amt,0);
-  document.getElementById('pt-total-val').textContent='RM '+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  document.getElementById('pt-total-krw').textContent='≈ KRW '+Math.round(total*RATE).toLocaleString();
-  document.getElementById('pt-count').textContent=pretripExpenses.length;
+  const total = pretripExpenses.reduce((s,e)=>s+e.amt,0);
 
-  // Category breakdown pills
-  const catTotals={};
-  pretripExpenses.forEach(e=>{ catTotals[e.cat]=(catTotals[e.cat]||0)+e.amt; });
-  document.getElementById('pt-cat-pills').innerHTML=Object.entries(catTotals)
-    .sort((a,b)=>b[1]-a[1])
-    .map(([cat,amt])=>`<div class="pt-cat-pill">${cat} <span>RM ${amt.toFixed(0)}</span></div>`)
-    .join('');
+  // ── Total strip ──
+  const stripEl = document.getElementById('pt-total-display');
+  if(stripEl) stripEl.textContent = 'RM '+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-  // Transaction list
-  const listEl=document.getElementById('pt-list-body');
+  // ── Category progress bars (same style as in-trip) ──
+  const PT_CATS = Object.keys(PT_CAT_COLOR);
+  const ptCatData = PT_CATS.map(c=>({
+    name:c, color:PT_CAT_COLOR[c],
+    total:pretripExpenses.filter(e=>e.cat===c).reduce((s,e)=>s+e.amt,0)
+  })).filter(c=>c.total>0);
+  const ptMax = Math.max(...ptCatData.map(c=>c.total),1);
+  const ptBarsEl = document.getElementById('pt-cat-bars');
+  if(ptBarsEl){
+    ptBarsEl.innerHTML = ptCatData.length
+      ? ptCatData.map(c=>`<div class="cat-row">
+          <div class="cat-dot" style="background:${c.color}"></div>
+          <div class="cat-name" style="font-size:.68rem">${stripEmoji(c.name)}</div>
+          <div class="cat-bar-bg"><div class="cat-bar" style="width:${(c.total/ptMax*100).toFixed(0)}%;background:${c.color}"></div></div>
+          <div class="cat-amt">RM ${c.total.toFixed(0)}</div>
+        </div>`).join('')
+      : '<div style="font-size:.72rem;color:var(--muted);text-align:center;padding:.4rem">Add pre-trip expenses to see breakdown</div>';
+  }
+
+  // ── Transaction list ──
+  const listEl = document.getElementById('pt-list-body');
+  if(!listEl) return;
   if(!pretripExpenses.length){
-    listEl.innerHTML='<div class="empty-state">No pre-trip expenses yet 🧳<br>Add flights, hotels & more above.</div>';
+    listEl.innerHTML='<div class="empty-state">No pre-trip expenses yet 🧳<br>Add flights, hotels &amp; more above.</div>';
     return;
   }
   listEl.innerHTML=[...pretripExpenses].sort((a,b)=>b.id-a.id).map(e=>`
-    <div class="exp-item">
+    <div class="exp-item" onclick="openPtDetail(${e.id})" style="cursor:pointer">
       <div class="exp-dot" style="background:${PT_CAT_COLOR[e.cat]||'#aaa'}"></div>
-      <div class="exp-desc">${e.desc}</div>
+      <div class="exp-desc">
+        <div>${e.desc}</div>
+        ${e.notes?`<div class="exp-item-note">${e.notes}</div>`:''}
+      </div>
       <div class="exp-badges">
         <span class="exp-pay">${e.pay.split(' ')[0]}</span>
       </div>
       <div class="exp-amt">RM ${e.amt.toFixed(2)}</div>
-      <button class="exp-edit" onclick="openPtEdit(${e.id})">✏️</button>
-      <button class="exp-del" onclick="delPretrip(${e.id})">✕</button>
+      <button class="exp-edit" onclick="event.stopPropagation();openPtEdit(${e.id})">✏️</button>
+      <button class="exp-del" onclick="event.stopPropagation();delPretrip(${e.id})">✕</button>
     </div>`).join('');
+}
+
+// ─── RECEIPT IMAGE FUNCTIONS ──────────────
+
+// Compress image to base64, max 800px wide, quality 0.7
+function getCompressedImage(inputId){
+  return new Promise(resolve=>{
+    const file = document.getElementById(inputId)?.files?.[0];
+    if(!file){resolve(null);return;}
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const MAX = 800;
+        let w=img.width, h=img.height;
+        if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+        const canvas=document.createElement('canvas');
+        canvas.width=w; canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg',0.7));
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function previewReceipt(inputId, previewId){
+  const file = document.getElementById(inputId)?.files?.[0];
+  if(!file) return;
+  const wrapId = previewId+'-wrap';
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    document.getElementById(previewId).src = ev.target.result;
+    document.getElementById(wrapId).style.display='inline-flex';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearReceipt(inputId, previewId, wrapId){
+  const input = document.getElementById(inputId);
+  if(input) input.value='';
+  const img = document.getElementById(previewId);
+  if(img) img.src='';
+  const wrap = document.getElementById(wrapId);
+  if(wrap) wrap.style.display='none';
+}
+
+// ─── RECEIPT DETAIL VIEWER ────────────────
+function openReceiptDetail(id){
+  const e = expenses.find(x=>x.id===id);
+  if(!e) return;
+  document.getElementById('rd-title').textContent = e.desc;
+  document.getElementById('rd-meta').textContent  = e.date+' · '+e.rgn;
+  const PAY_ICON={'💵 Cash':'💵 Cash','💳 Credit Card':'💳 Credit Card','🌐 Wise':'🌐 Wise','📱 Other':'📱 Other'};
+  document.getElementById('rd-rows').innerHTML=`
+    <div class="rd-row"><span class="rd-lbl">Amount</span><span class="rd-val">KRW ${e.amt.toLocaleString()} <span style="font-weight:400;color:var(--muted)">≈ RM ${(e.amt/RATE).toFixed(2)}</span></span></div>
+    <div class="rd-row"><span class="rd-lbl">Category</span><span class="rd-val">${e.cat}</span></div>
+    <div class="rd-row"><span class="rd-lbl">Payment</span><span class="rd-val">${PAY_ICON[e.pay]||e.pay}</span></div>
+    <div class="rd-row"><span class="rd-lbl">Region</span><span class="rd-val">${e.rgn}</span></div>`;
+  const imgEl  = document.getElementById('rd-img');
+  const imgWrap= document.getElementById('rd-img-wrap');
+  const noImg  = document.getElementById('rd-no-img');
+  if(e.receipt){
+    imgEl.src = e.receipt;
+    imgWrap.style.display='block';
+    noImg.style.display='none';
+  } else {
+    imgWrap.style.display='none';
+    noImg.style.display='block';
+  }
+  document.getElementById('receiptModal').classList.add('open');
+}
+function closeReceiptModal(ev){
+  if(!ev||ev.target===document.getElementById('receiptModal'))
+    document.getElementById('receiptModal').classList.remove('open');
 }
 
 // ─── TOAST ────────────────────────────────
