@@ -11,7 +11,7 @@
 <style>
 :root{
   --ink:#1a1410;--paper:#f7f4ef;--cream:#ede9e2;--rust:#c0392b;
-  --gold:#b8952a;--seoul:#1d4e89;--jeju:#1e6b45;
+  --gold:#b8952a;--seoul:#1d4e89;--jeju:#1e6b45;--green-bright:#3ddc84;
   --muted:#7a7062;--border:#d4cfc7;--card:#ffffff;
   --sh:0 2px 12px rgba(26,20,16,.09);--sh2:0 6px 28px rgba(26,20,16,.15);
   --app-max:430px;--nav-h:52px;--bot-h:56px;
@@ -357,22 +357,25 @@ body{
 
 /* ── MASTER BUDGET CARD ── */
 .master-budget-card{background:var(--ink);padding:.85rem 1.1rem .9rem;margin-bottom:0;}
-.mb-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;}
-.mb-label{font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:#7a7060;margin-bottom:.2rem;}
-.mb-budget{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--gold);line-height:1;}
-.mb-set-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#c4b8a8;font-size:.65rem;padding:.3rem .7rem;border-radius:6px;cursor:pointer;white-space:nowrap;margin-top:.15rem;}
-.mb-set-btn:active{background:rgba(255,255,255,.18);}
-.mb-rows{display:flex;flex-direction:column;gap:.32rem;margin-bottom:.75rem;}
-.mb-row{display:flex;align-items:center;gap:.55rem;}
-.mb-row-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-.mb-row-label{font-size:.72rem;color:#9a9080;flex:1;}
-.mb-row-val{font-size:.78rem;font-weight:600;color:#c4b8a8;}
-.mb-row-remain .mb-row-label{color:#f7f4ef;font-weight:600;}
-.mb-row-remain .mb-row-val{color:var(--gold);font-size:.85rem;}
+/* Remaining — hero number */
+.mb-remain-hero{margin-bottom:.75rem;}
+.mb-remain-label{font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:#6a6050;margin-bottom:.18rem;}
+.mb-remain-big{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:var(--green-bright);line-height:1;transition:color .3s;}
+/* Secondary rows */
+.mb-rows{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.7rem;}
+.mb-row{display:flex;align-items:center;gap:.5rem;}
+.mb-row-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.mb-row-label{font-size:.68rem;color:#8a8070;flex:1;}
+.mb-row-val{font-size:.72rem;font-weight:600;color:#b0a088;display:flex;align-items:center;gap:.3rem;}
+.mb-budget-ref{gap:.35rem;}
+/* Budget set button — now inline, tiny */
+.mb-set-btn{background:none;border:none;color:#6a6050;font-size:.65rem;cursor:pointer;padding:0;opacity:.7;line-height:1;}
+.mb-set-btn:active{opacity:1;color:#c4b8a8;}
+/* Progress bar */
 .mb-bar-wrap{}
-.mb-bar-track{height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;display:flex;margin-bottom:.3rem;}
+.mb-bar-track{height:4px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;display:flex;margin-bottom:.28rem;}
 .mb-bar-seg{height:100%;transition:width .6s;}
-.mb-bar-labels{display:flex;justify-content:space-between;font-size:.52rem;color:#6a6050;}
+.mb-bar-labels{display:flex;justify-content:space-between;font-size:.5rem;color:#6a6050;}
 
 /* ── PRE-TRIP PAGE ── */
 .pt-hero{background:var(--ink);padding:.8rem 1.1rem .85rem;}
@@ -474,13 +477,12 @@ body{
       </div>
       <!-- Master Budget Card -->
       <div class="master-budget-card" id="master-budget-card">
-        <div class="mb-header">
-          <div>
-            <div class="mb-label">Trip Budget</div>
-            <div class="mb-budget" id="mb-budget-val">RM —</div>
-          </div>
-          <button class="mb-set-btn" onclick="openTripBudgetModal()">✏️ Set Budget</button>
+        <!-- HERO: Remaining — the number that matters most -->
+        <div class="mb-remain-hero">
+          <div class="mb-remain-label">Remaining Budget</div>
+          <div class="mb-remain-big" id="mb-remain">RM —</div>
         </div>
+        <!-- SECONDARY: Pre-trip + In-trip + Budget ref -->
         <div class="mb-rows">
           <div class="mb-row">
             <div class="mb-row-dot" style="background:#6c5ce7"></div>
@@ -492,13 +494,16 @@ body{
             <div class="mb-row-label">In-trip spent</div>
             <div class="mb-row-val" id="mb-intrip">RM 0.00</div>
           </div>
-          <div class="mb-row mb-row-remain">
-            <div class="mb-row-dot" style="background:var(--jeju)"></div>
-            <div class="mb-row-label">Remaining</div>
-            <div class="mb-row-val" id="mb-remain">RM —</div>
+          <div class="mb-row">
+            <div class="mb-row-dot" style="background:rgba(255,255,255,.2)"></div>
+            <div class="mb-row-label" style="color:#6a6050">Trip budget</div>
+            <div class="mb-row-val mb-budget-ref">
+              <span id="mb-budget-val" style="color:#7a7060">RM —</span>
+              <button class="mb-set-btn" onclick="openTripBudgetModal()">✏️</button>
+            </div>
           </div>
         </div>
-        <!-- unified progress bar -->
+        <!-- progress bar -->
         <div class="mb-bar-wrap">
           <div class="mb-bar-track">
             <div class="mb-bar-seg" id="mb-bar-pretrip" style="background:#6c5ce7;width:0%"></div>
@@ -1876,6 +1881,7 @@ function updateHome(){
   const totalSpentRM = pretripRM + intripRM;
 
   // Master budget card
+  const remEl = document.getElementById('mb-remain');
   if(tripBudgetRM > 0){
     document.getElementById('mb-budget-val').textContent = 'RM '+tripBudgetRM.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
     const remainRM = tripBudgetRM - totalSpentRM;
@@ -1885,17 +1891,17 @@ function updateHome(){
     document.getElementById('mb-bar-intrip').style.width  = itPct.toFixed(1)+'%';
     const usedPct  = Math.min(((pretripRM+intripRM)/tripBudgetRM)*100,100);
     document.getElementById('mb-bar-pct').textContent = usedPct.toFixed(0)+'% of budget used';
-    document.getElementById('mb-remain').textContent  = remainRM>=0
+    remEl.textContent = remainRM>=0
       ? 'RM '+remainRM.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})
       : '-RM '+Math.abs(remainRM).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    document.getElementById('mb-remain').style.color = remainRM<0 ? 'var(--rust)' : 'var(--gold)';
+    remEl.style.color = remainRM < 0 ? 'var(--rust)' : remainRM < tripBudgetRM*0.15 ? '#e07b4f' : 'var(--green-bright)';
   } else {
     document.getElementById('mb-budget-val').textContent = 'RM —';
     document.getElementById('mb-bar-pretrip').style.width='0%';
     document.getElementById('mb-bar-intrip').style.width='0%';
     document.getElementById('mb-bar-pct').textContent='Set a budget to track progress';
-    document.getElementById('mb-remain').textContent='RM —';
-    document.getElementById('mb-remain').style.color='var(--gold)';
+    remEl.textContent='RM —';
+    remEl.style.color='#6a6050';
   }
   document.getElementById('mb-pretrip').textContent = 'RM '+pretripRM.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('mb-intrip').textContent  = 'RM '+intripRM.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
