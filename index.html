@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#1a1410"/>
+<title>Seoul & Jeju — Trip Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ink:#1a1410;--paper:#f7f4ef;--cream:#ede9e2;--rust:#c0392b;
+  --gold:#b8952a;--seoul:#1d4e89;--jeju:#1e6b45;
+  --muted:#7a7062;--border:#d4cfc7;--card:#ffffff;
+  --sh:0 2px 12px rgba(26,20,16,.09);--sh2:0 6px 28px rgba(26,20,16,.15);
+  --app-max:430px;--nav-h:52px;--bot-h:56px;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{height:100%;height:-webkit-fill-available;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:#1e1a16;
+  color:var(--ink);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  min-height:-webkit-fill-available;
+  overflow:hidden;
+}
+
+/* ── APP SHELL ── */
+#app{
+  width:100%;
+  max-width:var(--app-max);
+  /* Full height on phones, capped on tablets/desktop */
+  height:100vh;
+  height:100dvh;
+  background:var(--paper);
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  overflow:hidden;
+}
+/* Rounded card on larger screens (tablet/desktop preview) */
+@media(min-width:500px){
+  #app{border-radius:28px;height:min(92dvh,900px);box-shadow:0 0 80px rgba(0,0,0,.6);}
+}
+
+/* ── TOP BAR ── */
+.topbar{
+  height:calc(var(--nav-h) + var(--safe-top));
+  padding-top:var(--safe-top);
+  background:var(--ink);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding-left:1.1rem;
+  padding-right:1.1rem;
+  flex-shrink:0;
+  z-index:10;
+}
+.topbar-brand{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:#f7f4ef;letter-spacing:.02em;}
+.topbar-brand span{color:var(--gold);}
+.topbar-right{font-size:.65rem;letter-spacing:.06em;text-transform:uppercase;color:#9a9080;}
+
+/* ── SCROLL AREA ── */
+.page-scroll{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  position:relative;
+}
+.page-scroll::-webkit-scrollbar{width:3px;}
+.page-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── PAGES ── */
+.page{display:none;}
+.page.active{display:block;animation:fadeUp .22s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+  background:var(--card);
+  border-top:1px solid var(--border);
+  display:flex;
+  align-items:stretch;
+  flex-shrink:0;
+  /* height adapts: base height + iPhone home indicator space */
+  padding-bottom:var(--safe-bot);
+  min-height:var(--bot-h);
+}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;border:none;background:none;padding:.4rem 0 .2rem;transition:background .15s;}
+.bnav-item:active{background:var(--cream);}
+.bnav-icon{font-size:1.1rem;line-height:1;}
+.bnav-label{font-size:.55rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;}
+.bnav-item.act-home .bnav-label,.bnav-item.act-itin .bnav-label{color:var(--ink);font-weight:700;}
+.bnav-item.act-pretrip .bnav-label{color:#6c5ce7;font-weight:700;}
+.bnav-item.act-cur .bnav-label{color:var(--gold);font-weight:700;}
+.bnav-item.act-exp .bnav-label{color:var(--rust);font-weight:700;}
+/* FAB centre button */
+.bnav-fab{width:60px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:none;cursor:pointer;padding:0;position:relative;align-self:center;margin:0 .1rem;gap:2px;}
+.bnav-fab-icon{width:48px;height:48px;background:var(--gold);color:var(--ink);border-radius:50%;font-size:1.6rem;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 4px 18px rgba(184,149,42,.45);transition:transform .15s,background .15s;margin-top:-16px;}
+.bnav-fab:active .bnav-fab-icon{transform:scale(.92);background:#a07f20;}
+.bnav-fab-label{font-size:.5rem;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+
+/* ── HERO ── */
+.hero{position:relative;height:190px;overflow:hidden;flex-shrink:0;}
+@media(max-height:700px){.hero{height:150px;}}
+.hero-img{position:absolute;inset:0;background-size:cover;background-position:center;}
+.hero-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(20,15,10,.88) 0%,rgba(20,15,10,.1) 60%,transparent 100%);}
+.hero-content{position:absolute;bottom:0;left:0;right:0;z-index:1;padding:.9rem 1.1rem .85rem;}
+.hero-eye{font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.2rem;}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:2.1rem;font-weight:700;color:#fff;line-height:1.05;}
+.hero-sub{font-size:.7rem;color:rgba(255,255,255,.62);margin-top:.22rem;font-weight:300;}
+
+/* ── STAT ROW ── */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);background:var(--ink);border-bottom:1px solid #2a2015;}
+.stat-row-solo{grid-template-columns:1fr;}
+.stat-box{padding:.65rem .2rem;text-align:center;}
+.stat-box-spent{padding:.7rem 1.1rem;display:flex;align-items:center;justify-content:space-between;}
+.stat-spent-lbl{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:#7a7060;}
+.stat-amounts{display:flex;gap:1rem;align-items:baseline;}
+.stat-spent-krw{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;color:var(--gold);line-height:1;}
+.stat-spent-rm{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;color:#9a8a60;line-height:1;}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:700;color:var(--gold);line-height:1;}
+.stat-label{font-size:.52rem;letter-spacing:.08em;text-transform:uppercase;color:#7a7060;margin-top:.12rem;}
+.stat-rm{font-size:.52rem;color:#9a8a60;margin-top:.08rem;letter-spacing:.02em;}
+
+/* ── CONTENT ── */
+.content{padding:1rem;}
+.sec-hdr{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.85rem;padding-bottom:.45rem;border-bottom:1px solid var(--border);}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;}
+.sec-sub{font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+
+/* ── DEST CARDS ── */
+.dest-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem;}
+.dest-card{border-radius:10px;overflow:hidden;box-shadow:var(--sh);cursor:pointer;}
+.dest-img{height:110px;background-size:cover;background-position:center;position:relative;}
+.dest-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(20,15,10,.85),transparent 55%);}
+.dest-lbl{position:absolute;bottom:.55rem;left:.65rem;z-index:1;}
+.dest-name{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:#fff;line-height:1;}
+.dest-dates{font-size:.52rem;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-top:.1rem;}
+.dest-body{background:var(--card);padding:.55rem .65rem;border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;}
+.dest-chips{display:flex;flex-wrap:wrap;gap:.22rem;}
+.chip{font-size:.56rem;padding:.12rem .35rem;background:var(--cream);border-radius:3px;color:var(--muted);}
+
+/* ── QUICK LINKS ── */
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;}
+.ql{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.8rem .85rem;cursor:pointer;display:flex;align-items:center;gap:.6rem;transition:all .15s;}
+.ql:active{background:var(--ink);border-color:var(--ink);}
+.ql:active .ql-label,.ql:active .ql-sub{color:#fff;}
+.ql-ico{font-size:1.15rem;flex-shrink:0;}
+.ql-label{font-size:.8rem;font-weight:600;}
+.ql-sub{font-size:.62rem;color:var(--muted);margin-top:.06rem;}
+
+/* ── PHASE BAR ── */
+.phase-bar{display:flex;overflow-x:auto;gap:.4rem;padding:.7rem 1rem;background:var(--card);border-bottom:1px solid var(--border);scrollbar-width:none;position:sticky;top:0;z-index:5;}
+.phase-bar::-webkit-scrollbar{display:none;}
+.phase-pill{flex-shrink:0;font-size:.62rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.28rem .7rem;border-radius:20px;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s;}
+.phase-pill.ps{background:var(--seoul);color:#fff;border-color:var(--seoul);}
+.phase-pill.pj{background:var(--jeju);color:#fff;border-color:var(--jeju);}
+
+/* ── DAY CARDS ── */
+.day-list{display:flex;flex-direction:column;gap:.65rem;padding:.85rem .9rem 5rem;}
+.day-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--sh);}
+.day-hdr{display:flex;align-items:center;gap:.75rem;padding:.8rem .9rem;cursor:pointer;user-select:none;}
+.day-hdr:active{background:#faf8f5;}
+/* FIX 4: date chip replaces number */
+.day-date-chip{font-family:'Cormorant Garamond',serif;font-size:.78rem;font-weight:700;line-height:1.15;min-width:42px;text-align:center;padding:.25rem .35rem;border-radius:6px;flex-shrink:0;}
+.day-date-chip.seoul-chip{background:#dce8f5;color:var(--seoul);}
+.day-date-chip.jeju-chip{background:#d4eddd;color:var(--jeju);}
+.day-date-chip.trans-chip{background:#fef3d0;color:#8a6000;}
+.day-info{flex:1;min-width:0;}
+.day-region-lbl{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;}
+.day-theme{font-size:.88rem;font-weight:600;margin-top:.06rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.day-tags{display:flex;gap:.28rem;flex-wrap:wrap;margin-top:.28rem;}
+.tag{font-size:.56rem;letter-spacing:.05em;text-transform:uppercase;padding:.13rem .38rem;border-radius:3px;font-weight:600;}
+.tag-food{background:#fdebd0;color:#a04010;}
+.tag-culture{background:#e8daef;color:#5b2d82;}
+.tag-nature{background:#d4eddd;color:#1e6b45;}
+.tag-shopping{background:#fce4ec;color:#a01050;}
+.day-toggle{font-size:.95rem;color:var(--border);flex-shrink:0;}
+.day-body{display:none;border-top:1px solid var(--border);}
+.day-body.open{display:block;}
+
+/* ── ACCOM STRIP ── */
+.accom-strip{background:#f5f2ec;padding:.55rem .9rem;display:flex;align-items:flex-start;gap:.55rem;border-bottom:1px solid var(--border);}
+.accom-main{flex:1;min-width:0;}
+.accom-name{font-size:.78rem;font-weight:600;}
+.accom-row{display:flex;gap:.35rem;align-items:center;margin-top:.18rem;flex-wrap:wrap;}
+.accom-stn{background:var(--ink);color:var(--paper);font-size:.56rem;padding:.1rem .42rem;border-radius:3px;letter-spacing:.03em;}
+.accom-price{font-size:.68rem;color:var(--muted);}
+
+/* ── ACTIVITIES ── */
+.activity{display:grid;grid-template-columns:50px 1fr;border-bottom:1px solid #f0ece6;}
+.activity:last-child{border-bottom:none;}
+.act-time{padding:.8rem 0 .8rem .9rem;font-family:'Cormorant Garamond',serif;font-size:.88rem;font-weight:600;color:#b0a898;white-space:nowrap;line-height:1.2;}
+.act-body{padding:.8rem .9rem .8rem 0;}
+.act-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:.4rem;}
+.act-title{font-weight:600;font-size:.83rem;line-height:1.3;flex:1;}
+.act-action-btns{display:flex;gap:.15rem;flex-shrink:0;}
+.act-edit-btn{background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--border);padding:.1rem;flex-shrink:0;transition:color .15s;}
+.act-edit-btn:active{color:var(--ink);}
+.act-remove-btn{background:none;border:none;cursor:pointer;font-size:.72rem;color:var(--border);padding:.1rem .15rem;flex-shrink:0;transition:color .15s;}
+.act-remove-btn:active{color:var(--rust);}
+.accom-edit-btn{margin-left:auto;flex-shrink:0;}
+/* Add activity row */
+.add-act-row{padding:.6rem .9rem;border-top:1px dashed var(--border);}
+.add-act-btn{width:100%;padding:.5rem;background:transparent;border:1px dashed var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--muted);cursor:pointer;transition:all .15s;letter-spacing:.03em;}
+.add-act-btn:active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.act-loc{font-size:.7rem;color:var(--muted);margin-top:.15rem;}
+.act-meta{display:flex;gap:.28rem;flex-wrap:wrap;align-items:center;margin-top:.3rem;}
+.tbadge{display:inline-flex;align-items:center;gap:.18rem;font-size:.58rem;padding:.13rem .4rem;border-radius:3px;font-weight:600;letter-spacing:.04em;}
+.tb-subway{background:#e3e8f5;color:#1a3a6e;}
+.tb-walk{background:#e8f5e9;color:#1b5e20;}
+.tb-bus{background:#fff3e0;color:#c65100;}
+.tb-taxi{background:#fce4ec;color:#880e4f;}
+.tb-ferry{background:#e0f7fa;color:#00607a;}
+.tb-train{background:#e8eaf6;color:#283593;}
+.stn-pill{background:var(--ink);color:var(--paper);font-size:.56rem;padding:.13rem .45rem;border-radius:10px;}
+.act-cost{font-size:.7rem;font-weight:700;color:var(--gold);}
+.free-badge{font-size:.7rem;font-weight:700;color:var(--jeju);}
+.map-row{display:flex;gap:.28rem;margin-top:.35rem;}
+.map-btn{font-size:.6rem;padding:.16rem .5rem;border:1px solid var(--border);border-radius:4px;text-decoration:none;color:var(--muted);background:var(--paper);cursor:pointer;}
+.map-btn:active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.act-note{font-size:.68rem;color:var(--muted);font-style:italic;margin-top:.25rem;line-height:1.4;}
+
+/* ── EDIT MODAL (FIX 3) ── */
+.modal-overlay{position:absolute;inset:0;background:rgba(26,20,16,.55);z-index:50;display:none;align-items:flex-end;}
+.modal-overlay.open{display:flex;animation:fadeUp .2s ease;}
+.modal-sheet{background:var(--card);width:100%;border-radius:16px 16px 0 0;padding:1.25rem 1.1rem calc(1.5rem + var(--safe-bot));max-height:88%;overflow-y:auto;}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto .9rem;}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;margin-bottom:.9rem;}
+.modal-group{margin-bottom:.7rem;}
+.modal-lbl{font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.25rem;}
+.modal-input,.modal-select,.modal-textarea{width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.85rem;background:var(--paper);color:var(--ink);outline:none;}
+.modal-input:focus,.modal-select:focus,.modal-textarea:focus{border-color:var(--ink);}
+.modal-textarea{resize:vertical;min-height:60px;}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
+.modal-btns{display:flex;gap:.5rem;margin-top:.9rem;}
+.btn-save{flex:1;padding:.62rem;background:var(--ink);color:var(--paper);border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;}
+.btn-cancel{padding:.62rem 1rem;background:var(--cream);color:var(--ink);border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.85rem;cursor:pointer;}
+
+/* ── CURRENCY ── */
+.cur-hero{background:var(--ink);padding:1.4rem 1.1rem 1.1rem;text-align:center;}
+.cur-hero h1{font-family:'Cormorant Garamond',serif;font-size:1.75rem;font-weight:300;color:#f7f4ef;margin-bottom:.3rem;}
+.rate-big{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--gold);}
+.rate-note{font-size:.62rem;color:#8a8070;margin-top:.18rem;}
+.conv-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.2rem;margin:1rem;box-shadow:var(--sh2);}
+.conv-lbl{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.28rem;}
+.conv-wrap{position:relative;margin-bottom:.7rem;}
+.conv-flag{position:absolute;left:.8rem;top:50%;transform:translateY(-50%);font-size:1rem;}
+.conv-code{position:absolute;right:.8rem;top:50%;transform:translateY(-50%);font-size:.7rem;font-weight:600;color:var(--muted);}
+/* FIX 6: text display input for comma-formatted value */
+.conv-display{width:100%;padding:.72rem 3.2rem .72rem 2.5rem;font-size:1.2rem;font-family:'Cormorant Garamond',serif;font-weight:600;border:1px solid var(--border);border-radius:7px;background:var(--paper);color:var(--ink);outline:none;cursor:text;}
+.conv-display:focus{border-color:var(--ink);}
+.swap-btn{display:block;margin:0 auto .7rem;background:var(--paper);border:1px solid var(--border);border-radius:50%;width:32px;height:32px;font-size:.95rem;cursor:pointer;color:var(--muted);}
+/* ── BUDGET GUIDE ── */
+.bdg-summary{background:var(--ink);border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem;}
+.bdg-summary-inner{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:.3rem;}
+.bdg-sum-divider{width:1px;height:32px;background:rgba(255,255,255,.15);}
+.bdg-sum-col{text-align:center;}
+.bdg-sum-lbl{font-size:.48rem;letter-spacing:.1em;text-transform:uppercase;color:#7a7060;margin-bottom:.18rem;}
+.bdg-sum-avg{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:700;color:var(--gold);line-height:1;}
+.bdg-sum-range{font-family:'Cormorant Garamond',serif;font-size:.95rem;font-weight:600;color:#c4b8a8;line-height:1;}
+.bdg-sum-rm{font-size:.52rem;color:#7a7060;margin-top:.12rem;}
+.bdg-list{display:flex;flex-direction:column;gap:.55rem;padding:0 1rem 5rem;}
+.bdg-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.85rem .9rem;box-shadow:var(--sh);}
+.bdg-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.55rem;}
+.bdg-card-left{display:flex;align-items:flex-start;gap:.65rem;}
+.bdg-icon{font-size:1.4rem;line-height:1;flex-shrink:0;margin-top:.05rem;}
+.bdg-cat{font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;line-height:1.2;}
+.bdg-avg{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:700;color:var(--ink);margin-top:.18rem;line-height:1;}
+.bdg-avg-rm{font-size:.65rem;font-weight:400;color:var(--muted);font-family:'DM Sans',sans-serif;}
+.bdg-region{font-size:.52rem;padding:.1rem .38rem;border-radius:3px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;vertical-align:middle;}
+.bdg-seoul{background:#dce8f5;color:var(--seoul);}
+.bdg-jeju{background:#d4eddd;color:var(--jeju);}
+/* Range bar */
+.bdg-bar-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;}
+.bdg-range-lbl{font-size:.5rem;color:var(--muted);white-space:nowrap;min-width:0;flex-shrink:0;}
+.bdg-bar-track{flex:1;height:6px;background:var(--cream);border-radius:3px;position:relative;overflow:visible;}
+.bdg-bar-fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(to right,var(--jeju),var(--gold));border-radius:3px;}
+.bdg-bar-marker{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;background:var(--gold);border:2px solid var(--card);border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.bdg-range-sub{font-size:.58rem;color:var(--muted);margin-bottom:.45rem;}
+.bdg-tip{font-size:.68rem;color:var(--muted);line-height:1.45;font-style:italic;padding-top:.4rem;border-top:1px solid #f0ece6;}
+
+/* ── EXPENSES HERO ── */
+.exp-hero{background:var(--ink);padding:.75rem .9rem .7rem;}
+/* Top section — Total Spent + Credit Card */
+.exp-top-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;}
+.exp-top-lbl{font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:#6a6050;margin-bottom:.06rem;}
+.exp-top-val{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold);line-height:1;}
+.exp-top-sub{font-size:.58rem;color:#9a9080;margin-top:.05rem;}
+.exp-cc-block{text-align:right;}
+.exp-cc-val{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:#e07b4f;line-height:1;}
+/* Separator */
+.exp-hero-sep{height:1px;background:rgba(255,255,255,.1);margin-bottom:.5rem;}
+/* Bottom section — Cash | Wise | Remaining */
+.exp-bot-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:start;}
+.exp-bot-panel{}
+.exp-bot-lbl{font-size:.46rem;letter-spacing:.1em;text-transform:uppercase;color:#6a6050;margin-bottom:.05rem;}
+.exp-bot-val{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;color:var(--gold);line-height:1.1;}
+.exp-remain-val{color:var(--gold);}
+.exp-bot-sub{font-size:.48rem;color:#7a7060;margin-top:.04rem;}
+.exp-bot-divider{width:1px;background:rgba(255,255,255,.1);align-self:stretch;margin:0 .4rem;}
+/* Shared */
+.exp-cash-row{display:flex;align-items:center;gap:.15rem;}
+.cash-edit-btn{background:none;border:none;font-size:.6rem;cursor:pointer;padding:.03rem;opacity:.5;color:#fff;flex-shrink:0;}
+.cash-edit-btn:active{opacity:1;}
+/* Progress bar */
+.cash-bar-wrap{}
+.cash-bar-track{height:3px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin-bottom:.22rem;}
+.cash-bar-fill{height:100%;border-radius:3px;transition:width .5s,background .4s;background:var(--gold);}
+.cash-bar-fill.warn{background:#e07b4f;}
+.cash-bar-fill.danger{background:var(--rust);}
+.cash-bar-labels{display:flex;justify-content:space-between;font-size:.48rem;color:#6a6050;}
+.cat-bars{padding:.8rem 1rem;background:var(--card);border-bottom:1px solid var(--border);}
+.cat-row{display:flex;align-items:center;gap:.55rem;margin-bottom:.45rem;}
+.cat-row:last-child{margin-bottom:0;}
+.cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.cat-name{font-size:.7rem;width:88px;flex-shrink:0;}
+.cat-bar-bg{flex:1;height:5px;background:var(--cream);border-radius:3px;overflow:hidden;}
+.cat-bar{height:100%;border-radius:3px;transition:width .5s;}
+.cat-amt{font-size:.7rem;font-weight:600;min-width:70px;text-align:right;}
+.exp-form{padding:.8rem 1rem;border-bottom:1px solid var(--border);}
+.form-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;margin-bottom:.7rem;}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.45rem;}
+.f-group{margin-bottom:.45rem;}
+.f-lbl{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.22rem;display:block;}
+.f-input,.f-select{width:100%;padding:.52rem .65rem;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.83rem;background:var(--paper);color:var(--ink);outline:none;}
+.f-input:focus,.f-select:focus{border-color:var(--ink);}
+.btn-add{width:100%;padding:.62rem;background:var(--ink);color:var(--paper);border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:500;cursor:pointer;margin-top:.35rem;letter-spacing:.03em;}
+.btn-add:active{background:#2d2520;}
+.exp-list{padding:.7rem 1rem 5rem;}
+.exp-list-title{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.55rem;}
+.exp-item{display:flex;align-items:center;gap:.5rem;padding:.52rem 0;border-bottom:1px solid #f0ece6;}
+.exp-item:last-child{border-bottom:none;}
+.exp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.exp-desc{font-size:.78rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.exp-badges{display:flex;gap:.25rem;flex-shrink:0;align-items:center;}
+.exp-rgn{font-size:.55rem;padding:.08rem .32rem;border-radius:3px;}
+.rgn-Seoul{background:#dce8f5;color:var(--seoul);}
+.rgn-Jeju{background:#d4eddd;color:var(--jeju);}
+.exp-pay{font-size:.55rem;padding:.08rem .32rem;border-radius:3px;background:var(--cream);color:var(--muted);}
+.exp-amt{font-size:.78rem;font-weight:600;flex-shrink:0;}
+.exp-edit{background:none;border:none;color:var(--border);cursor:pointer;font-size:.72rem;padding:.08rem .18rem;flex-shrink:0;}
+.exp-edit:active{color:var(--ink);}
+.exp-del{background:none;border:none;color:var(--border);cursor:pointer;font-size:.78rem;padding:.08rem .22rem;flex-shrink:0;}
+.exp-del:active{color:var(--rust);}
+.empty-state{text-align:center;padding:1.5rem 1rem;color:var(--muted);font-size:.8rem;}
+
+/* ── MASTER BUDGET CARD ── */
+.master-budget-card{background:var(--ink);padding:.85rem 1.1rem .9rem;margin-bottom:0;}
+.mb-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;}
+.mb-label{font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:#7a7060;margin-bottom:.2rem;}
+.mb-budget{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--gold);line-height:1;}
+.mb-set-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#c4b8a8;font-size:.65rem;padding:.3rem .7rem;border-radius:6px;cursor:pointer;white-space:nowrap;margin-top:.15rem;}
+.mb-set-btn:active{background:rgba(255,255,255,.18);}
+.mb-rows{display:flex;flex-direction:column;gap:.32rem;margin-bottom:.75rem;}
+.mb-row{display:flex;align-items:center;gap:.55rem;}
+.mb-row-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.mb-row-label{font-size:.72rem;color:#9a9080;flex:1;}
+.mb-row-val{font-size:.78rem;font-weight:600;color:#c4b8a8;}
+.mb-row-remain .mb-row-label{color:#f7f4ef;font-weight:600;}
+.mb-row-remain .mb-row-val{color:var(--gold);font-size:.85rem;}
+.mb-bar-wrap{}
+.mb-bar-track{height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;display:flex;margin-bottom:.3rem;}
+.mb-bar-seg{height:100%;transition:width .6s;}
+.mb-bar-labels{display:flex;justify-content:space-between;font-size:.52rem;color:#6a6050;}
+
+/* ── PRE-TRIP PAGE ── */
+.pt-hero{background:var(--ink);padding:.8rem 1.1rem .85rem;}
+.pt-hero-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem;}
+.pt-hero-lbl{font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:#6a6050;margin-bottom:.08rem;}
+.pt-hero-val{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:700;color:var(--gold);line-height:1;}
+.pt-hero-sub{font-size:.6rem;color:#9a9080;margin-top:.08rem;}
+.pt-hero-right{text-align:right;}
+.pt-cat-pills{display:flex;flex-wrap:wrap;gap:.3rem;}
+.pt-cat-pill{font-size:.58rem;padding:.18rem .5rem;border-radius:12px;background:rgba(255,255,255,.08);color:#c4b8a8;white-space:nowrap;}
+.pt-cat-pill span{font-weight:700;color:var(--gold);}
+
+/* ── SCROLL TOP BTN ── */
+.scroll-top-btn{
+  position:absolute;
+  bottom:calc(var(--bot-h) + var(--safe-bot) + 10px);
+  right:14px;
+  width:36px;height:36px;
+  border-radius:50%;
+  background:var(--ink);
+  color:#fff;
+  border:none;
+  font-size:.95rem;
+  cursor:pointer;
+  box-shadow:var(--sh2);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:20;
+  transition:opacity .2s;
+}
+.scroll-top-btn.visible{display:flex;}
+
+/* ── QUICK ADD FLOATING PAGE ── */
+.qa-overlay{background:rgba(26,20,16,.7);align-items:center;justify-content:center;}
+.qa-sheet{background:var(--paper);width:calc(100% - 2rem);max-width:390px;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;max-height:88dvh;box-shadow:0 16px 48px rgba(0,0,0,.4);animation:qaPop .22s cubic-bezier(.34,1.56,.64,1);}
+@keyframes qaPop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.qa-header{background:var(--ink);padding:.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.qa-title{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600;color:#f7f4ef;}
+.qa-close{background:none;border:none;color:#9a9080;font-size:1rem;cursor:pointer;padding:.15rem .35rem;border-radius:4px;}
+.qa-close:active{color:#fff;}
+.qa-body{padding:1rem 1.1rem;overflow-y:auto;flex:1;}
+.qa-amount-row{display:flex;gap:.5rem;margin-bottom:.45rem;}
+.qa-amt-wrap{position:relative;}
+.qa-currency{position:absolute;left:.7rem;top:50%;transform:translateY(-50%);font-size:.72rem;font-weight:600;color:var(--muted);}
+.qa-input-lg{font-size:.95rem !important;}
+.qa-input-amt{padding-left:3rem !important;font-family:'Cormorant Garamond',serif !important;font-size:1.4rem !important;font-weight:700 !important;width:100%;}
+.qa-chip-lbl{font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;margin-top:.1rem;}
+.qa-chips{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.5rem;}
+.qa-chip{font-size:.72rem;padding:.3rem .65rem;border:1px solid var(--border);border-radius:20px;background:var(--card);color:var(--ink);cursor:pointer;transition:all .15s;}
+.qa-chip:active,.qa-chip.selected{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.qa-footer{padding:.75rem 1.1rem;border-top:1px solid var(--border);flex-shrink:0;}
+.qa-submit{width:100%;padding:.75rem;background:var(--gold);color:var(--ink);border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;letter-spacing:.03em;transition:background .15s;}
+.qa-submit:active{background:#a07f20;}
+
+/* ── TOAST ── */
+.toast{
+  position:absolute;
+  bottom:calc(var(--bot-h) + var(--safe-bot) + 8px);
+  left:50%;
+  transform:translateX(-50%) translateY(8px);
+  background:var(--ink);
+  color:var(--paper);
+  padding:.48rem .95rem;
+  border-radius:20px;
+  font-size:.75rem;
+  z-index:99;
+  opacity:0;
+  transition:all .25s;
+  pointer-events:none;
+  white-space:nowrap;
+  max-width:85%;
+  text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-brand">✈ <span>Seoul</span> & Jeju</div>
+    <div class="topbar-right">20–29 Nov 2025</div>
+  </div>
+
+  <!-- SCROLL AREA -->
+  <div class="page-scroll" id="mainScroll">
+
+    <!-- ══ HOME ══ -->
+    <div id="page-home" class="page active">
+      <div class="hero">
+        <div class="hero-img" style="background-image:url('https://images.unsplash.com/photo-1534274867514-d5b47ef89ed7?w=900&q=80&auto=format&fit=crop')"></div>
+        <div class="hero-content">
+          <div class="hero-eye">Your travel planner · 🇲🇾 → 🇰🇷</div>
+          <div class="hero-title">Seoul & Jeju</div>
+          <div class="hero-sub">10 days · 20–29 November 2025</div>
+        </div>
+      </div>
+      <!-- Master Budget Card -->
+      <div class="master-budget-card" id="master-budget-card">
+        <div class="mb-header">
+          <div>
+            <div class="mb-label">Trip Budget</div>
+            <div class="mb-budget" id="mb-budget-val">RM —</div>
+          </div>
+          <button class="mb-set-btn" onclick="openTripBudgetModal()">✏️ Set Budget</button>
+        </div>
+        <div class="mb-rows">
+          <div class="mb-row">
+            <div class="mb-row-dot" style="background:#6c5ce7"></div>
+            <div class="mb-row-label">Pre-trip paid</div>
+            <div class="mb-row-val" id="mb-pretrip">RM 0.00</div>
+          </div>
+          <div class="mb-row">
+            <div class="mb-row-dot" style="background:var(--gold)"></div>
+            <div class="mb-row-label">In-trip spent</div>
+            <div class="mb-row-val" id="mb-intrip">RM 0.00</div>
+          </div>
+          <div class="mb-row mb-row-remain">
+            <div class="mb-row-dot" style="background:var(--jeju)"></div>
+            <div class="mb-row-label">Remaining</div>
+            <div class="mb-row-val" id="mb-remain">RM —</div>
+          </div>
+        </div>
+        <!-- unified progress bar -->
+        <div class="mb-bar-wrap">
+          <div class="mb-bar-track">
+            <div class="mb-bar-seg" id="mb-bar-pretrip" style="background:#6c5ce7;width:0%"></div>
+            <div class="mb-bar-seg" id="mb-bar-intrip"  style="background:var(--gold);width:0%"></div>
+          </div>
+          <div class="mb-bar-labels">
+            <span id="mb-bar-pct">0% of budget used</span>
+            <span id="mb-bar-days">10 days</span>
+          </div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="sec-hdr"><div class="sec-title">Destinations</div><div class="sec-sub">Tap to open</div></div>
+        <div class="dest-grid">
+          <!-- Seoul card -->
+          <div class="dest-card" onclick="showPage('itinerary')">
+            <div class="dest-img" style="background-image:url('https://images.unsplash.com/photo-1534274867514-d5b47ef89ed7?w=800&q=80&auto=format&fit=crop')">
+              <div class="dest-lbl">
+                <div class="dest-name">Seoul</div>
+                <div class="dest-dates">Nov 20–23 &amp; Nov 28–29 · Days 1–4 &amp; 9–10</div>
+              </div>
+            </div>
+            <div class="dest-body">
+              <div class="dest-chips">
+                <span class="chip">Gyeongbokgung</span><span class="chip">Myeongdong</span><span class="chip">Bukchon</span><span class="chip">Hongdae</span><span class="chip">Han River</span><span class="chip">Gangnam</span>
+              </div>
+            </div>
+          </div>
+          <!-- Jeju card -->
+          <div class="dest-card" onclick="showPage('itinerary')">
+            <div class="dest-img" style="background-image:url('https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=800&q=80&auto=format&fit=crop')">
+              <div class="dest-lbl">
+                <div class="dest-name">Jeju</div>
+                <div class="dest-dates">Nov 23–28 · Days 4–9</div>
+              </div>
+            </div>
+            <div class="dest-body">
+              <div class="dest-chips">
+                <span class="chip">Sunrise Peak</span><span class="chip">Hallasan</span><span class="chip">Black Pork</span><span class="chip">Hyeopjae Beach</span><span class="chip">Café Street</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sec-hdr"><div class="sec-title">Quick Access</div></div>
+        <div class="quick-grid">
+          <div class="ql" onclick="showPage('pretrip')"><div class="ql-ico">🧳</div><div><div class="ql-label">Pre-trip</div><div class="ql-sub">Flights, hotels, more</div></div></div>
+          <div class="ql" onclick="showPage('expenses')"><div class="ql-ico">📊</div><div><div class="ql-label">In-trip</div><div class="ql-sub">Daily KRW tracking</div></div></div>
+          <div class="ql" onclick="showPage('currency')"><div class="ql-ico">💱</div><div><div class="ql-label">Currency</div><div class="ql-sub">RM ↔ KRW + guide</div></div></div>
+          <div class="ql" onclick="showPage('itinerary')"><div class="ql-ico">🗓</div><div><div class="ql-label">Itinerary</div><div class="ql-sub">10-day plan</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PRE-TRIP ══ -->
+    <div id="page-pretrip" class="page">
+      <!-- Hero summary -->
+      <div class="pt-hero">
+        <div class="pt-hero-row">
+          <div>
+            <div class="pt-hero-lbl">Pre-trip Total</div>
+            <div class="pt-hero-val" id="pt-total-val">RM 0.00</div>
+            <div class="pt-hero-sub" id="pt-total-krw">≈ KRW 0</div>
+          </div>
+          <div class="pt-hero-right">
+            <div class="pt-hero-lbl">Items logged</div>
+            <div class="pt-hero-val" id="pt-count">0</div>
+            <div class="pt-hero-sub">expenses</div>
+          </div>
+        </div>
+        <!-- category breakdown pills -->
+        <div class="pt-cat-pills" id="pt-cat-pills"></div>
+      </div>
+
+      <!-- Add form -->
+      <div class="exp-form" style="border-top:none">
+        <div class="form-title">Add Pre-trip Expense</div>
+        <div class="f-group">
+          <label class="f-lbl">Description</label>
+          <input class="f-input" id="pt-desc" placeholder="e.g. AirAsia KUL–ICN return"/>
+        </div>
+        <div class="f-row">
+          <div class="f-group" style="margin-bottom:0">
+            <label class="f-lbl">Amount (RM MYR)</label>
+            <input class="f-input" id="pt-amt" type="number" inputmode="decimal" placeholder="1200.00"/>
+          </div>
+          <div class="f-group" style="margin-bottom:0">
+            <label class="f-lbl">Category</label>
+            <select class="f-select" id="pt-cat">
+              <option>✈️ Flights</option>
+              <option>🏨 Accommodation</option>
+              <option>🚗 Car Rental</option>
+              <option>🛡 Travel Insurance</option>
+              <option>🎫 Tours / Tickets</option>
+              <option>🪪 Visa Fees</option>
+              <option>📦 Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="f-row" style="margin-top:.45rem">
+          <div class="f-group" style="margin-bottom:0">
+            <label class="f-lbl">Payment Method</label>
+            <select class="f-select" id="pt-pay">
+              <option>💳 Credit Card</option><option>🌐 Wise</option><option>💵 Cash</option><option>🏦 Bank Transfer</option>
+            </select>
+          </div>
+          <div class="f-group" style="margin-bottom:0">
+            <label class="f-lbl">Date Paid</label>
+            <input class="f-input" id="pt-date" type="date"/>
+          </div>
+        </div>
+        <button class="btn-add" onclick="addPretrip()">+ Add Pre-trip Expense</button>
+      </div>
+
+      <!-- List -->
+      <div class="exp-list">
+        <div class="exp-list-title">Pre-trip Expenses</div>
+        <div id="pt-list-body"><div class="empty-state">No pre-trip expenses yet 🧳<br>Add flights, hotels & more above.</div></div>
+      </div>
+    </div>
+
+    <!-- ══ ITINERARY ══ -->
+    <div id="page-itinerary" class="page">
+      <div class="phase-bar" id="phase-bar"></div>
+      <div class="day-list" id="all-days"></div>
+    </div>
+
+    <!-- ══ CURRENCY ══ -->
+    <div id="page-currency" class="page">
+      <div class="cur-hero">
+        <h1>Currency Converter</h1>
+        <div class="rate-big">1 MYR = <span id="rate-val">330</span> KRW</div>
+        <div class="rate-note">Fixed reference rate · 1 KRW ≈ RM 0.0030</div>
+      </div>
+      <div class="conv-card">
+        <div class="conv-lbl">Malaysian Ringgit</div>
+        <div class="conv-wrap">
+          <span class="conv-flag">🇲🇾</span>
+          <input class="conv-display" id="rm-input" type="text" inputmode="decimal" placeholder="0.00"/>
+          <span class="conv-code">MYR</span>
+        </div>
+        <button class="swap-btn" onclick="swapCur()">⇄</button>
+        <div class="conv-lbl">Korean Won</div>
+        <div class="conv-wrap">
+          <span class="conv-flag">🇰🇷</span>
+          <input class="conv-display" id="krw-input" type="text" inputmode="numeric" placeholder="0"/>
+          <span class="conv-code">KRW</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="sec-hdr">
+          <div class="sec-title">Daily Budget Guide</div>
+          <div class="sec-sub">Per person · Mid-range</div>
+        </div>
+        <div class="bdg-summary" id="bdg-summary"></div>
+      </div>
+      <div class="bdg-list" id="bdg-list"></div>
+    </div>
+
+    <!-- ══ EXPENSES ══ -->
+    <div id="page-expenses" class="page">
+      <div class="exp-hero">
+
+        <!-- TOP: Total Spent (full width, prominent) -->
+        <div class="exp-top-row">
+          <div>
+            <div class="exp-top-lbl">Total Spent</div>
+            <div class="exp-top-val" id="tot-krw">KRW 0</div>
+            <div class="exp-top-sub" id="tot-rm">RM 0.00</div>
+          </div>
+          <div class="exp-cc-block">
+            <div class="exp-top-lbl">Credit Card 💳</div>
+            <div class="exp-cc-val" id="cc-spent">KRW 0</div>
+            <div class="exp-top-sub" id="cc-spent-rm">RM 0.00</div>
+          </div>
+        </div>
+
+        <!-- DIVIDER -->
+        <div class="exp-hero-sep"></div>
+
+        <!-- BOTTOM: Cash | Wise | Remaining (auto = Cash+Wise−Spent) -->
+        <div class="exp-bot-row">
+          <div class="exp-bot-panel">
+            <div class="exp-bot-lbl">Cash 💵</div>
+            <div class="exp-cash-row">
+              <div class="exp-bot-val" id="cash-balance">—</div>
+              <button class="cash-edit-btn" onclick="openCashModal()">✏️</button>
+            </div>
+            <div class="exp-bot-sub" id="cash-balance-sub">Tap to set</div>
+          </div>
+          <div class="exp-bot-divider"></div>
+          <div class="exp-bot-panel">
+            <div class="exp-bot-lbl">Wise 🌐</div>
+            <div class="exp-cash-row">
+              <div class="exp-bot-val" id="wise-balance">—</div>
+              <button class="cash-edit-btn" onclick="openWiseModal()">✏️</button>
+            </div>
+            <div class="exp-bot-sub" id="wise-balance-sub">Tap to set</div>
+          </div>
+          <div class="exp-bot-divider"></div>
+          <div class="exp-bot-panel">
+            <div class="exp-bot-lbl">Remaining</div>
+            <div class="exp-bot-val exp-remain-val" id="budget-remain">—</div>
+            <div class="exp-bot-sub" id="budget-remain-sub">Cash + Wise − Spent</div>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="cash-bar-wrap" style="margin-top:.5rem">
+          <div class="cash-bar-track"><div class="cash-bar-fill" id="cash-bar-fill"></div></div>
+          <div class="cash-bar-labels">
+            <span id="cash-bar-pct">—</span>
+            <span id="cash-budget-lbl">Set Cash or Wise to track</span>
+          </div>
+        </div>
+      </div>
+      <div class="cat-bars" id="cat-bars"></div>
+      <div class="exp-form">
+        <div class="form-title">Add Expense</div>
+        <div class="f-group">
+          <label class="f-lbl">Description</label>
+          <input class="f-input" id="e-desc" placeholder="e.g. Bibimbap lunch"/>
+        </div>
+        <div class="f-row">
+          <div class="f-group" style="margin-bottom:0">
+            <label class="f-lbl">Amount (₩ KRW)</label>
+            <input class="f-input" id="e-amt" type="number" inputmode="numeric" placeholder="15000"/>
+          </div>
+          <div class="f-group" style="margin-bottom:0">
+            <label class="f-lbl">Category</label>
+            <select class="f-select" id="e-cat">
+              <option>Food</option><option>Transport</option><option>Accommodation</option>
+              <option>Shopping</option><option>Activities</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="f-row" style="margin-top:.45rem">
+          <div class="f-group" style="margin-bottom:0">
+            <label class="f-lbl">Payment Method</label>
+            <select class="f-select" id="e-pay">
+              <option>💵 Cash</option><option>💳 Credit Card</option><option>🌐 Wise</option><option>📱 Other</option>
+            </select>
+          </div>
+          <div class="f-group" style="margin-bottom:0">
+            <label class="f-lbl">Region</label>
+            <select class="f-select" id="e-rgn"><option>Seoul</option><option>Jeju</option></select>
+          </div>
+        </div>
+        <div class="f-row" style="margin-top:.45rem">
+          <div class="f-group" style="margin-bottom:0">
+            <label class="f-lbl">Date</label>
+            <input class="f-input" id="e-date" type="date"/>
+          </div>
+          <div class="f-group" style="margin-bottom:0"></div>
+        </div>
+        <button class="btn-add" onclick="addExp()">+ Add Expense</button>
+      </div>
+      <div class="exp-list">
+        <div class="exp-list-title">Transactions</div>
+        <div id="exp-list-body"><div class="empty-state">No expenses yet 🧾<br>Add your first one!</div></div>
+      </div>
+    </div>
+
+  </div><!-- /page-scroll -->
+
+  <!-- SCROLL-TO-TOP BTN (FIX 5) -->
+  <button class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()" aria-label="Scroll to top">↑</button>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="bnav-item act-home" data-p="home" onclick="showPage('home')">
+      <span class="bnav-icon">🏠</span><span class="bnav-label">Home</span>
+    </button>
+    <button class="bnav-item" data-p="pretrip" onclick="showPage('pretrip')">
+      <span class="bnav-icon">🧳</span><span class="bnav-label">Pre-trip</span>
+    </button>
+    <!-- FAB centre button -->
+    <button class="bnav-fab" onclick="openQuickAdd()" aria-label="Quick add expense">
+      <span class="bnav-fab-icon">＋</span>
+      <span class="bnav-fab-label">Add</span>
+    </button>
+    <button class="bnav-item" data-p="itinerary" onclick="showPage('itinerary')">
+      <span class="bnav-icon">🗓</span><span class="bnav-label">Itinerary</span>
+    </button>
+    <button class="bnav-item" data-p="expenses" onclick="showPage('expenses')">
+      <span class="bnav-icon">📊</span><span class="bnav-label">In-trip</span>
+    </button>
+  </nav>
+
+  <!-- ACTIVITY EDIT MODAL -->
+  <div class="modal-overlay" id="editModal" onclick="closeModal(event)">
+    <div class="modal-sheet" id="editSheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title" id="editModalTitle">Edit Activity</div>
+      <div class="modal-group">
+        <label class="modal-lbl">Title</label>
+        <input class="modal-input" id="m-title" placeholder="e.g. Gyeongbokgung Palace"/>
+      </div>
+      <div class="modal-group">
+        <label class="modal-lbl">Location / Address</label>
+        <input class="modal-input" id="m-loc" placeholder="e.g. Jongno-gu, Seoul"/>
+      </div>
+      <div class="modal-row">
+        <div class="modal-group">
+          <label class="modal-lbl">Time</label>
+          <input class="modal-input" id="m-time" placeholder="e.g. 09:00"/>
+        </div>
+        <div class="modal-group">
+          <label class="modal-lbl">Cost (₩ KRW)</label>
+          <input class="modal-input" id="m-cost" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-group">
+          <label class="modal-lbl">Transport</label>
+          <select class="modal-select" id="m-tr">
+            <option>subway</option><option>walk</option><option>bus</option>
+            <option>taxi</option><option>ferry</option><option>train</option>
+          </select>
+        </div>
+        <div class="modal-group">
+          <label class="modal-lbl">Station / Stop</label>
+          <input class="modal-input" id="m-stn" placeholder="e.g. Anguk Stn · Exit 2"/>
+        </div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-group">
+          <label class="modal-lbl">Google Maps URL</label>
+          <input class="modal-input" id="m-gm" placeholder="https://maps.google.com/..."/>
+        </div>
+        <div class="modal-group">
+          <label class="modal-lbl">Naver Maps URL</label>
+          <input class="modal-input" id="m-nv" placeholder="https://map.naver.com/..."/>
+        </div>
+      </div>
+      <div class="modal-group">
+        <label class="modal-lbl">Notes / Tips</label>
+        <textarea class="modal-textarea" id="m-note" placeholder="Insider tips, reminders..."></textarea>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" onclick="saveEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCOMMODATION EDIT MODAL -->
+  <div class="modal-overlay" id="accomModal" onclick="closeAccomModal(event)">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Edit Accommodation</div>
+      <div class="modal-group">
+        <label class="modal-lbl">Hotel / Guesthouse Name</label>
+        <input class="modal-input" id="ac-name" placeholder="e.g. Myeongdong Guesthouse"/>
+      </div>
+      <div class="modal-group">
+        <label class="modal-lbl">Nearest Station / Area</label>
+        <input class="modal-input" id="ac-stn" placeholder="e.g. Myeongdong Stn · Line 4"/>
+      </div>
+      <div class="modal-group">
+        <label class="modal-lbl">Price per night</label>
+        <input class="modal-input" id="ac-price" placeholder="e.g. ₩70,000/night"/>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeAccomModal()">Cancel</button>
+        <button class="btn-save" onclick="saveAccom()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASH ON HAND MODAL -->
+  <div class="modal-overlay" id="cashModal" onclick="closeCashModal(event)">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Cash on Hand (₩)</div>
+      <p style="font-size:.72rem;color:var(--muted);margin-bottom:.9rem;line-height:1.5">Track your KRW cash balance. Add cash in (e.g. exchanged at airport) or cash out (manual spend).</p>
+      <div class="modal-group">
+        <label class="modal-lbl">Current cash balance (₩ KRW)</label>
+        <input class="modal-input" id="cash-bal-input" type="number" inputmode="numeric" placeholder="e.g. 500000"/>
+      </div>
+      <div style="font-size:.7rem;color:var(--muted);margin-bottom:.9rem" id="cash-bal-preview">≈ RM 0.00</div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeCashModal()">Cancel</button>
+        <button class="btn-save" onclick="saveCashBal()">Update Balance</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUDGET MODAL -->
+  <div class="modal-overlay" id="budgetModal" onclick="closeBudgetModal(event)">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Set Trip Budget</div>
+      <p style="font-size:.72rem;color:var(--muted);margin-bottom:.9rem;line-height:1.5">Set your total trip budget in KRW. The progress bar will fill as you log expenses.</p>
+      <div class="modal-group">
+        <label class="modal-lbl">Total budget (₩ KRW)</label>
+        <input class="modal-input" id="budget-krw-input" type="number" inputmode="numeric" placeholder="e.g. 3000000"/>
+      </div>
+      <div style="font-size:.7rem;color:var(--muted);margin-bottom:.9rem" id="budget-rm-preview">≈ RM 0.00</div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeBudgetModal()">Cancel</button>
+        <button class="btn-save" onclick="saveBudget()">Save Budget</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WISE MODAL -->
+  <div class="modal-overlay" id="wiseModal" onclick="closeWiseModal(event)">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Wise Balance (KRW)</div>
+      <p style="font-size:.72rem;color:var(--muted);margin-bottom:.9rem;line-height:1.5">Track your current KRW balance in Wise. Update this whenever you top up or check your Wise app.</p>
+      <div class="modal-group">
+        <label class="modal-lbl">Current Wise balance (₩ KRW)</label>
+        <input class="modal-input" id="wise-bal-input" type="number" inputmode="numeric" placeholder="e.g. 800000"/>
+      </div>
+      <div style="font-size:.7rem;color:var(--muted);margin-bottom:.9rem" id="wise-bal-preview">≈ RM 0.00</div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeWiseModal()">Cancel</button>
+        <button class="btn-save" onclick="saveWiseBal()">Update Balance</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal-overlay" id="txnEditModal" onclick="closeTxnModal(event)">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Edit Transaction</div>
+      <div class="modal-group">
+        <label class="modal-lbl">Description</label>
+        <input class="modal-input" id="te-desc"/>
+      </div>
+      <div class="modal-row">
+        <div class="modal-group">
+          <label class="modal-lbl">Amount (₩ KRW)</label>
+          <input class="modal-input" id="te-amt" type="number" inputmode="numeric"/>
+        </div>
+        <div class="modal-group">
+          <label class="modal-lbl">Category</label>
+          <select class="modal-select" id="te-cat">
+            <option>Food</option><option>Transport</option><option>Accommodation</option>
+            <option>Shopping</option><option>Activities</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-group">
+          <label class="modal-lbl">Payment Method</label>
+          <select class="modal-select" id="te-pay">
+            <option>💵 Cash</option><option>💳 Credit Card</option><option>🌐 Wise</option><option>📱 Other</option>
+          </select>
+        </div>
+        <div class="modal-group">
+          <label class="modal-lbl">Region</label>
+          <select class="modal-select" id="te-rgn"><option>Seoul</option><option>Jeju</option></select>
+        </div>
+      </div>
+      <div class="modal-group">
+        <label class="modal-lbl">Date</label>
+        <input class="modal-input" id="te-date" type="date"/>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeTxnModal()">Cancel</button>
+        <button class="btn-save" onclick="saveTxnEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK-ADD EXPENSE MODAL (FAB) -->
+  <!-- QUICK ADD MODAL — full floating page -->
+  <div class="modal-overlay qa-overlay" id="quickAddModal" onclick="closeQuickAdd(event)">
+    <div class="qa-sheet">
+      <div class="qa-header">
+        <div class="qa-title">Add Expense</div>
+        <button class="qa-close" onclick="closeQuickAdd()">✕</button>
+      </div>
+      <div class="qa-body">
+        <div class="modal-group">
+          <label class="modal-lbl">Description</label>
+          <input class="modal-input qa-input-lg" id="qa-desc" placeholder="e.g. Bibimbap at Gwangjang Market" autofocus/>
+        </div>
+        <div class="qa-amount-row">
+          <div class="modal-group" style="flex:1">
+            <label class="modal-lbl">Amount</label>
+            <div class="qa-amt-wrap">
+              <span class="qa-currency">KRW</span>
+              <input class="modal-input qa-input-amt" id="qa-amt" type="number" inputmode="numeric" placeholder="0"/>
+            </div>
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-group">
+            <label class="modal-lbl">Category</label>
+            <select class="modal-select" id="qa-cat">
+              <option>Food</option><option>Transport</option><option>Accommodation</option>
+              <option>Shopping</option><option>Activities</option><option>Other</option>
+            </select>
+          </div>
+          <div class="modal-group">
+            <label class="modal-lbl">Payment</label>
+            <select class="modal-select" id="qa-pay">
+              <option>💵 Cash</option><option>💳 Credit Card</option><option>🌐 Wise</option><option>📱 Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-group">
+            <label class="modal-lbl">Region</label>
+            <select class="modal-select" id="qa-rgn"><option>Seoul</option><option>Jeju</option></select>
+          </div>
+          <div class="modal-group">
+            <label class="modal-lbl">Date</label>
+            <input class="modal-input" id="qa-date" type="date"/>
+          </div>
+        </div>
+        <!-- Quick category chips -->
+        <div class="qa-chip-lbl">Quick category</div>
+        <div class="qa-chips">
+          <button class="qa-chip" onclick="setQaCat('Food')">🍜 Food</button>
+          <button class="qa-chip" onclick="setQaCat('Transport')">🚇 Transport</button>
+          <button class="qa-chip" onclick="setQaCat('Shopping')">🛍 Shopping</button>
+          <button class="qa-chip" onclick="setQaCat('Activities')">🎯 Activities</button>
+          <button class="qa-chip" onclick="setQaCat('Accommodation')">🏨 Hotel</button>
+          <button class="qa-chip" onclick="setQaCat('Other')">📦 Other</button>
+        </div>
+      </div>
+      <div class="qa-footer">
+        <button class="qa-submit" onclick="submitQuickAdd()">＋ Add Expense</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRIP BUDGET MODAL -->
+  <div class="modal-overlay" id="tripBudgetModal" onclick="closeTripBudgetModal(event)">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Set Trip Budget (RM)</div>
+      <p style="font-size:.72rem;color:var(--muted);margin-bottom:.9rem;line-height:1.5">Your total budget in Malaysian Ringgit — covers pre-trip payments and daily in-trip spending combined.</p>
+      <div class="modal-group">
+        <label class="modal-lbl">Total trip budget (RM MYR)</label>
+        <input class="modal-input" id="tb-input" type="number" inputmode="decimal" placeholder="e.g. 8000"/>
+      </div>
+      <div style="font-size:.7rem;color:var(--muted);margin-bottom:.9rem" id="tb-krw-preview">≈ KRW 0</div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeTripBudgetModal()">Cancel</button>
+        <button class="btn-save" onclick="saveTripBudget()">Save Budget</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRE-TRIP ITEM EDIT MODAL -->
+  <div class="modal-overlay" id="ptEditModal" onclick="closePtEdit(event)">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Edit Pre-trip Expense</div>
+      <div class="modal-group">
+        <label class="modal-lbl">Description</label>
+        <input class="modal-input" id="pte-desc"/>
+      </div>
+      <div class="modal-row">
+        <div class="modal-group">
+          <label class="modal-lbl">Amount (RM)</label>
+          <input class="modal-input" id="pte-amt" type="number" inputmode="decimal"/>
+        </div>
+        <div class="modal-group">
+          <label class="modal-lbl">Category</label>
+          <select class="modal-select" id="pte-cat">
+            <option>✈️ Flights</option><option>🏨 Accommodation</option>
+            <option>🚗 Car Rental</option><option>🛡 Travel Insurance</option>
+            <option>🎫 Tours / Tickets</option><option>🪪 Visa Fees</option><option>📦 Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-group">
+          <label class="modal-lbl">Payment</label>
+          <select class="modal-select" id="pte-pay">
+            <option>💳 Credit Card</option><option>🌐 Wise</option><option>💵 Cash</option><option>🏦 Bank Transfer</option>
+          </select>
+        </div>
+        <div class="modal-group">
+          <label class="modal-lbl">Date Paid</label>
+          <input class="modal-input" id="pte-date" type="date"/>
+        </div>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closePtEdit()">Cancel</button>
+        <button class="btn-save" onclick="savePtEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div><!-- /app -->
+
+<script>
+// ─── RATE ────────────────────────────────
+const RATE = 330;
+
+// ─── ITINERARY DATA ──────────────────────
+// Seoul: Days 1–4 (Nov 20–23)  |  Jeju: Days 4–9 (Nov 23–28)  |  Seoul: Days 9–10 (Nov 28–29)
+let DAYS = [
+  {n:1,label:'Day 1',date:'Thu',day:'20',mon:'Nov',region:'Seoul',
+   theme:'Arrival — Incheon → Myeongdong',tags:['food','shopping'],
+   accom:{name:'Myeongdong Guesthouse / Hotel',stn:'Myeongdong Stn · Line 4',price:'₩60,000–80,000/night'},
+   acts:[
+    {t:'13:00',title:'Arrive Incheon Airport (ICN)',loc:'Incheon International Airport',stn:'AREX Express → Seoul Stn',tr:'train',cost:9000,note:'AREX express ~43 min to Seoul Station. Buy T-money card here! Top up ₩20,000 to start.',gm:'https://maps.google.com/?q=Incheon+International+Airport',nv:'https://map.naver.com/v5/search/인천국제공항'},
+    {t:'15:30',title:'Check in & freshen up',loc:'Myeongdong area hotel',stn:'Myeongdong Stn · Exit 5',tr:'subway',cost:0,note:'Drop bags, rest briefly. Request early check-in when booking.',gm:'https://maps.google.com/?q=Myeongdong+Seoul',nv:'https://map.naver.com/v5/search/명동'},
+    {t:'17:00',title:'Myeongdong Street Food & Shopping',loc:'Myeongdong-gil, Jung-gu',stn:'Myeongdong Stn · Exit 6',tr:'walk',cost:30000,note:'Try tteokbokki, fish cake skewers, egg bread, hotteok. Golden hour is the best time!',gm:'https://maps.google.com/?q=Myeongdong+Street+Seoul',nv:'https://map.naver.com/v5/search/명동거리'},
+    {t:'19:30',title:'Dinner: Korean BBQ (삼겹살)',loc:'Myeongdong BBQ street',stn:'Myeongdong Stn · Exit 8',tr:'walk',cost:25000,note:'Order samgyeopsal + soju. Wrap in lettuce with garlic. Welcome to Korea! 🇰🇷',gm:'https://maps.google.com/?q=Myeongdong+Korean+BBQ',nv:'https://map.naver.com/v5/search/명동 삼겹살'},
+  ]},
+  {n:2,label:'Day 2',date:'Fri',day:'21',mon:'Nov',region:'Seoul',
+   theme:'Palaces, Hanok & Tradition',tags:['culture','nature'],
+   accom:{name:'Myeongdong Guesthouse / Hotel',stn:'Myeongdong Stn · Line 4',price:'₩60,000–80,000/night'},
+   acts:[
+    {t:'09:00',title:'Gyeongbokgung Palace (경복궁)',loc:'Gyeongbok-ro, Jongno-gu',stn:'Gyeongbokgung Stn · Line 3 · Exit 5',tr:'subway',cost:3000,note:'Wear hanbok → free entry! Guard changing 10am & 2pm. Arrive early for fewer crowds.',gm:'https://maps.google.com/?q=Gyeongbokgung+Palace',nv:'https://map.naver.com/v5/search/경복궁'},
+    {t:'11:00',title:'Bukchon Hanok Village (북촌한옥마을)',loc:'Bukchon-ro, Jongno-gu',stn:'Anguk Stn · Line 3 · Exit 2',tr:'walk',cost:0,note:'Free. Best photo: Bukchon 8-gahil alley. Quieter in the morning. Respect residents!',gm:'https://maps.google.com/?q=Bukchon+Hanok+Village',nv:'https://map.naver.com/v5/search/북촌한옥마을'},
+    {t:'12:30',title:'Lunch at Insadong (인사동)',loc:'Insadong-gil, Jongno-gu',stn:'Anguk Stn · Exit 6',tr:'walk',cost:15000,note:'Try doenjang jjigae or bibimbap. Browse craft shops and galleries after.',gm:'https://maps.google.com/?q=Insadong+Seoul',nv:'https://map.naver.com/v5/search/인사동'},
+    {t:'14:00',title:'Changdeokgung & Secret Garden',loc:'Changdeok-ro, Jongno-gu',stn:'Anguk Stn · Exit 3',tr:'walk',cost:8000,note:'Book Secret Garden tour online ahead of time. 1.5hr guided walk. Beautiful in autumn.',gm:'https://maps.google.com/?q=Changdeokgung+Palace',nv:'https://map.naver.com/v5/search/창덕궁'},
+    {t:'17:00',title:'Cheonggyecheon Stream evening walk',loc:'Cheonggyecheon-ro, Jung-gu',stn:'Gwanghwamun Stn · Line 5',tr:'subway',cost:0,note:'Restored urban stream. Gorgeous at dusk with city lights reflecting on the water.',gm:'https://maps.google.com/?q=Cheonggyecheon+Stream',nv:'https://map.naver.com/v5/search/청계천'},
+    {t:'19:30',title:'Gwangjang Market (광장시장) dinner',loc:'Changgyeonggung-ro, Jongno-gu',stn:'Jongno 5-ga Stn · Line 1 · Exit 8',tr:'subway',cost:20000,note:'Korea\'s oldest market. MUST try: mayak gimbap, bindaetteok, yukhoe (raw beef).',gm:'https://maps.google.com/?q=Gwangjang+Market',nv:'https://map.naver.com/v5/search/광장시장'},
+  ]},
+  {n:3,label:'Day 3',date:'Sat',day:'22',mon:'Nov',region:'Seoul',
+   theme:'Hongdae, Gangnam & Night Views',tags:['shopping','culture','food'],
+   accom:{name:'Myeongdong Guesthouse / Hotel',stn:'Myeongdong Stn · Line 4',price:'₩60,000–80,000/night'},
+   acts:[
+    {t:'10:00',title:'Hongdae Street Art & Indie Cafes',loc:'Hongik University area, Mapo-gu',stn:'Hongik Univ Stn · Line 2 · Exit 9',tr:'subway',cost:6000,note:'Murals, quirky cafes, K-pop dance clubs. Very lively on weekends!',gm:'https://maps.google.com/?q=Hongdae+Seoul',nv:'https://map.naver.com/v5/search/홍대'},
+    {t:'12:30',title:'Lunch: Mapo Galmaegi-sal BBQ',loc:'Mapo-gu restaurant strip',stn:'Mapo Stn · Line 6',tr:'subway',cost:18000,note:'Galmaegi-sal (skirt steak BBQ) is Mapo\'s specialty — thinner cut, more flavour.',gm:'https://maps.google.com/?q=Mapo+Seoul',nv:'https://map.naver.com/v5/search/마포 갈매기살'},
+    {t:'14:30',title:'COEX Mall & Starfield Library',loc:'Teheran-ro, Gangnam-gu',stn:'Samseong Stn · Line 2 · Exit 5',tr:'subway',cost:0,note:'The Instagram-famous bookshelf library is free. COEX Aquarium optional (₩28,000).',gm:'https://maps.google.com/?q=COEX+Mall+Seoul',nv:'https://map.naver.com/v5/search/코엑스'},
+    {t:'16:30',title:'Lotte World Tower Sky100',loc:'Olympic-ro 300, Songpa-gu',stn:'Jamsil Stn · Lines 2/8 · Exit 1',tr:'subway',cost:29000,note:'Go before sunset, stay for night city lights. Best panorama in Seoul!',gm:'https://maps.google.com/?q=Lotte+World+Tower',nv:'https://map.naver.com/v5/search/롯데월드타워'},
+    {t:'20:30',title:'Sinchon Chimaek (치맥 — chicken & beer)',loc:'Sinchon, Seodaemun-gu',stn:'Sinchon Stn · Line 2 · Exit 1',tr:'subway',cost:22000,note:'Fried chicken + Korean beer = chimaek. Student neighbourhood, very lively Saturday night.',gm:'https://maps.google.com/?q=Sinchon+Seoul',nv:'https://map.naver.com/v5/search/신촌 치맥'},
+  ]},
+  // FIX 1: Day 4 is 23 Nov — transition Seoul→Jeju
+  {n:4,label:'Day 4',date:'Sun',day:'23',mon:'Nov',region:'Seoul → Jeju',
+   theme:'Han River Morning → Fly to Jeju',tags:['nature'],
+   accom:{name:'Jeju City Hotel / Guesthouse',stn:'Near Jeju Airport or City Centre',price:'₩70,000–90,000/night'},
+   acts:[
+    {t:'08:30',title:'Han River Picnic (여의도)',loc:'Yeouido Hangang Park',stn:'Yeouido Stn · Lines 5/9 · Exit 1',tr:'subway',cost:8000,note:'Buy kimbap + coffee at convenience store. Last Seoul morning — soak it in 🌅',gm:'https://maps.google.com/?q=Yeouido+Hangang+Park',nv:'https://map.naver.com/v5/search/여의도한강공원'},
+    {t:'10:30',title:'Head to Gimpo Airport (GMP)',loc:'Gimpo International Airport',stn:'Gimpo Airport Stn · Airport Line',tr:'subway',cost:1500,note:'~35 min from Yeouido. Budget airlines: Jeju Air, Jin Air from ₩40,000+ one way.',gm:'https://maps.google.com/?q=Gimpo+Airport',nv:'https://map.naver.com/v5/search/김포공항'},
+    {t:'13:00',title:'✈ Fly Gimpo → Jeju (~55 min)',loc:'In the air 🛫',stn:'Jeju International Airport',tr:'ferry',cost:50000,note:'Check in 1.5hr early. Grab duty-free snacks on the way!',gm:'https://maps.google.com/?q=Jeju+International+Airport',nv:'https://map.naver.com/v5/search/제주공항'},
+    {t:'15:00',title:'Arrive Jeju + Rent Car',loc:'Jeju International Airport',stn:'Jeju Airport',tr:'taxi',cost:50000,note:'Car rental ESSENTIAL in Jeju. Compact ~₩50,000/day. Book online in advance.',gm:'https://maps.google.com/?q=Jeju+International+Airport',nv:'https://map.naver.com/v5/search/제주 렌터카'},
+    {t:'17:00',title:'Yongduam Dragon Head Rock (용두암)',loc:'Yongduam-gil, Jeju-si',stn:'Drive from airport (~10 min)',tr:'taxi',cost:0,note:'Free! Iconic lava rock at the shore. Easy first Jeju stop — great sunset spot.',gm:'https://maps.google.com/?q=Yongduam+Rock+Jeju',nv:'https://map.naver.com/v5/search/용두암'},
+    {t:'19:00',title:'Dinner: Jeju Black Pork (흑돼지) first taste',loc:'Black Pork Street, Jeju City',stn:'Jeju City centre',tr:'taxi',cost:28000,note:'Thicker, richer pork belly unique to Jeju. Domi-samgyeopsal is the go-to!',gm:'https://maps.google.com/?q=Jeju+Black+Pork+Street',nv:'https://map.naver.com/v5/search/제주 흑돼지거리'},
+  ]},
+  // Jeju Days 5–8: Nov 24–27
+  {n:5,label:'Day 5',date:'Mon',day:'24',mon:'Nov',region:'Jeju',
+   theme:'East Jeju — Sunrise Peak & Lava Cave',tags:['nature','culture'],
+   accom:{name:'Seogwipo Guesthouse / Pension',stn:'Seogwipo Bus Terminal area',price:'₩70,000–90,000/night'},
+   acts:[
+    {t:'05:30',title:'Seongsan Ilchulbong Sunrise (성산일출봉)',loc:'Seongsan-eup, Seogwipo',stn:'Drive ~1hr from Jeju City',tr:'taxi',cost:5000,note:'UNESCO World Heritage. WAKE UP EARLY — sunrise is everything! 182m crater hike. Bring a torch.',gm:'https://maps.google.com/?q=Seongsan+Ilchulbong',nv:'https://map.naver.com/v5/search/성산일출봉'},
+    {t:'08:30',title:'Haenyeo Diving Show + Fresh Seafood',loc:'Seongsan Port area',stn:'Walk from Ilchulbong',tr:'walk',cost:20000,note:'Watch female free-divers (haenyeo). Buy fresh abalone, sea urchin at the stalls.',gm:'https://maps.google.com/?q=Seongsan+Haenyeo',nv:'https://map.naver.com/v5/search/성산 해녀'},
+    {t:'10:30',title:'Manjanggul Lava Tube Cave (만장굴)',loc:'Manjanggul-gil, Gujwa-eup',stn:'Drive ~25 min north',tr:'taxi',cost:4000,note:'World\'s longest lava tube. Inside is 11°C — bring a jacket! ~1km walk inside.',gm:'https://maps.google.com/?q=Manjanggul+Cave',nv:'https://map.naver.com/v5/search/만장굴'},
+    {t:'13:00',title:'Lunch: Coastal seafood ramyeon',loc:'East coast restaurant',stn:'Seongsan or Gujwa area',tr:'taxi',cost:12000,note:'Haemul ramyeon (seafood noodle) at a coastal pojangmacha. Authentic and cheap!',gm:'https://maps.google.com/?q=Seongsan+restaurant',nv:'https://map.naver.com/v5/search/성산 해물라면'},
+    {t:'14:30',title:'Seopjikoji Cape (섭지코지)',loc:'Seopjikoji-ro, Seongsan-eup',stn:'Drive 10 min from Seongsan',tr:'taxi',cost:0,note:'Dramatic volcanic cape. K-drama filming location. Walk to the lighthouse. Free!',gm:'https://maps.google.com/?q=Seopjikoji+Jeju',nv:'https://map.naver.com/v5/search/섭지코지'},
+    {t:'18:00',title:'Olle Trail evening walk',loc:'Jeju Olle Trail Route 7, Seogwipo',stn:'Seogwipo area',tr:'walk',cost:0,note:'Short coastal walk. Breathtaking cliffs and sea at dusk. Completely free.',gm:'https://maps.google.com/?q=Jeju+Olle+Trail',nv:'https://map.naver.com/v5/search/제주올레길'},
+  ]},
+  {n:6,label:'Day 6',date:'Tue',day:'25',mon:'Nov',region:'Jeju',
+   theme:'Hallasan Hike + West Coast Beach',tags:['nature'],
+   accom:{name:'Seogwipo Guesthouse / Pension',stn:'Seogwipo Bus Terminal area',price:'₩70,000–90,000/night'},
+   acts:[
+    {t:'07:00',title:'Hallasan National Park (한라산)',loc:'Eorimok Trailhead, Hallasan',stn:'Drive to Eorimok trailhead',tr:'taxi',cost:0,note:'Free! Eorimok: 4.7km, ~2hrs up. Last entry 12pm. Bring snacks, rain jacket, water.',gm:'https://maps.google.com/?q=Hallasan+Mountain',nv:'https://map.naver.com/v5/search/한라산'},
+    {t:'13:30',title:'Lunch: Black Pork at Seogwipo',loc:'Seogwipo restaurant row',stn:'Seogwipo city',tr:'taxi',cost:25000,note:'You earned it after the hike! Juicy Jeju black pork. Add kimchi jjigae on the side.',gm:'https://maps.google.com/?q=Seogwipo+restaurant',nv:'https://map.naver.com/v5/search/서귀포 흑돼지'},
+    {t:'15:30',title:'Hyeopjae Beach (협재해수욕장)',loc:'Hyeopjae-ri, Hallim-eup',stn:'Drive ~40 min northwest',tr:'taxi',cost:0,note:'Jeju\'s most beautiful beach — turquoise water, white sand. Biyangdo Island visible offshore.',gm:'https://maps.google.com/?q=Hyeopjae+Beach',nv:'https://map.naver.com/v5/search/협재해수욕장'},
+    {t:'17:00',title:'Hallim Park (한림공원)',loc:'Hallim-eup, Jeju',stn:'5 min drive from Hyeopjae',tr:'taxi',cost:14000,note:'Botanical garden + lava caves + subtropical plants. Beautiful in late afternoon light.',gm:'https://maps.google.com/?q=Hallim+Park+Jeju',nv:'https://map.naver.com/v5/search/한림공원'},
+    {t:'19:30',title:'Dinner: Galchi jorim (갈치조림)',loc:'Seogwipo Maeil Olle Market',stn:'Seogwipo centre',tr:'taxi',cost:16000,note:'Spicy braised hairtail fish — Jeju signature dish. Seogwipo is the best place for it!',gm:'https://maps.google.com/?q=Seogwipo+Maeil+Olle+Market',nv:'https://map.naver.com/v5/search/서귀포 갈치조림'},
+  ]},
+  {n:7,label:'Day 7',date:'Wed',day:'26',mon:'Nov',region:'Jeju',
+   theme:'Waterfalls & Folk Villages',tags:['nature','culture'],
+   accom:{name:'Seogwipo Guesthouse / Pension',stn:'Seogwipo Bus Terminal area',price:'₩70,000–90,000/night'},
+   acts:[
+    {t:'09:00',title:'Jeongbang Waterfall (정방폭포)',loc:'Chilsimni-ro, Seogwipo',stn:'Walk from Seogwipo centre',tr:'walk',cost:2000,note:'Only waterfall in Asia that flows directly into the sea. Best in morning light!',gm:'https://maps.google.com/?q=Jeongbang+Waterfall',nv:'https://map.naver.com/v5/search/정방폭포'},
+    {t:'10:30',title:'Cheonjiyeon Waterfall (천지연폭포)',loc:'Cheonjiyeon-ro, Seogwipo',stn:'10 min walk from Jeongbang',tr:'walk',cost:2000,note:'Three-tiered waterfall in a lush subtropical canyon. Especially magical in the mist.',gm:'https://maps.google.com/?q=Cheonjiyeon+Waterfall',nv:'https://map.naver.com/v5/search/천지연폭포'},
+    {t:'12:00',title:'Lunch: Seogwipo Fish Market',loc:'Seogwipo Maeil Olle Market',stn:'Seogwipo centre',tr:'walk',cost:18000,note:'Pick fresh fish, pay a small fee to have it cooked next door. Super fresh!',gm:'https://maps.google.com/?q=Seogwipo+Fish+Market',nv:'https://map.naver.com/v5/search/서귀포 매일올레시장'},
+    {t:'14:00',title:'Jeju Folk Village Museum (제주민속촌)',loc:'Pyoseon-ri, Seogwipo',stn:'Drive ~20 min east',tr:'taxi',cost:11000,note:'170 traditional thatched-roof houses. Great cultural insight and very photogenic.',gm:'https://maps.google.com/?q=Jeju+Folk+Village',nv:'https://map.naver.com/v5/search/제주민속촌'},
+    {t:'17:00',title:'Seongeup Folk Village (성읍민속마을)',loc:'Seongeup-ri, Seogwipo',stn:'Drive 15 min north',tr:'taxi',cost:0,note:'Living folk village — real residents still live here. Free to walk. Buy local makgeolli!',gm:'https://maps.google.com/?q=Seongup+Folk+Village',nv:'https://map.naver.com/v5/search/성읍민속마을'},
+    {t:'19:30',title:'Dinner: Haemul pajeon (해물파전)',loc:'Seogwipo restaurant',stn:'Seogwipo',tr:'taxi',cost:15000,note:'Thick crispy seafood pancake. Pair with cold makgeolli (rice wine). Perfect combo!',gm:'https://maps.google.com/?q=Seogwipo+restaurant',nv:'https://map.naver.com/v5/search/서귀포 해물파전'},
+  ]},
+  {n:8,label:'Day 8',date:'Thu',day:'27',mon:'Nov',region:'Jeju',
+   theme:'Ecoland + Café Street + Last Sunset',tags:['nature','food','shopping'],
+   accom:{name:'Seogwipo Guesthouse / Pension',stn:'Seogwipo Bus Terminal area',price:'₩70,000–90,000/night'},
+   acts:[
+    {t:'10:00',title:'Ecoland Theme Park (에코랜드)',loc:'Gyorae-ri, Jocheon-eup',stn:'Drive ~45 min north',tr:'taxi',cost:14000,note:'Charming forest train through Gotjawal forest and a lake. Peaceful and very photogenic.',gm:'https://maps.google.com/?q=Ecoland+Jeju',nv:'https://map.naver.com/v5/search/에코랜드'},
+    {t:'12:30',title:'Gotjawal Forest Walk',loc:'Gotjawal Provincial Park',stn:'Near Ecoland area',tr:'walk',cost:0,note:'Ancient volcanic forest unique to Jeju. Mystical atmosphere. Free walking trails.',gm:'https://maps.google.com/?q=Gotjawal+Forest+Jeju',nv:'https://map.naver.com/v5/search/곶자왈'},
+    {t:'14:00',title:'Jeju Café Street (애월 카페거리)',loc:'Aewol-eup, Jeju City',stn:'Drive ~30 min northwest',tr:'taxi',cost:8000,note:'Ocean-view cafes. Monsant Cafe and Bonte are favourites. Instagram-worthy stops!',gm:'https://maps.google.com/?q=Aewol+Cafe+Street+Jeju',nv:'https://map.naver.com/v5/search/애월 카페거리'},
+    {t:'16:30',title:'Hamdeok Beach (함덕해수욕장)',loc:'Hamdeok-ri, Jocheon-eup',stn:'Drive ~20 min east',tr:'taxi',cost:0,note:'Emerald water beach. Walk the Hamdeok Seoubong Peak trail beside it for views!',gm:'https://maps.google.com/?q=Hamdeok+Beach+Jeju',nv:'https://map.naver.com/v5/search/함덕해수욕장'},
+    {t:'18:30',title:'Hallabong souvenir shopping 🍊',loc:'Jeju Airport area shops',stn:'Jeju City',tr:'taxi',cost:20000,note:'Hallabong (Jeju mandarin) products: tea, chocolate, jelly, fresh fruit. Best gifts to bring home!',gm:'https://maps.google.com/?q=Jeju+Airport+souvenir',nv:'https://map.naver.com/v5/search/제주 한라봉'},
+    {t:'20:00',title:'Final Jeju dinner: Black pork feast',loc:'Black Pork Street, Jeju City',stn:'Jeju City',tr:'taxi',cost:35000,note:'Celebrate last Jeju night! Full samgyeopsal set with banchan spread. You\'ll miss this.',gm:'https://maps.google.com/?q=Jeju+Black+Pork+Street',nv:'https://map.naver.com/v5/search/제주 흑돼지'},
+  ]},
+  // FIX 1: Day 9 = 28 Nov — Jeju→Seoul transition
+  {n:9,label:'Day 9',date:'Fri',day:'28',mon:'Nov',region:'Jeju → Seoul',
+   theme:'Fly Back to Seoul — Markets & Itaewon',tags:['shopping','food','culture'],
+   accom:{name:'Myeongdong / Insadong Hotel',stn:'Euljiro or Jongno area',price:'₩70,000–90,000/night'},
+   acts:[
+    {t:'08:00',title:'Return rental car + Jeju Airport',loc:'Jeju International Airport',stn:'Jeju Airport',tr:'taxi',cost:15000,note:'Drop rental car at airport. Grab hallabong juice one last time at the café 🍊',gm:'https://maps.google.com/?q=Jeju+International+Airport',nv:'https://map.naver.com/v5/search/제주공항'},
+    {t:'10:00',title:'✈ Fly Jeju → Gimpo (~55 min)',loc:'In the air 🛫',stn:'Gimpo Airport, Seoul',tr:'ferry',cost:0,note:'Sit on the left side for Han River views on approach into Seoul!',gm:'https://maps.google.com/?q=Gimpo+Airport',nv:'https://map.naver.com/v5/search/김포공항'},
+    {t:'12:00',title:'Lunch: Namdaemun Market (남대문)',loc:'Namdaemunsijang, Jung-gu',stn:'Hoehyeon Stn · Line 4 · Exit 5',tr:'subway',cost:12000,note:'Kalguksu (knife noodles) at the market. Also stock up on souvenirs & dried goods.',gm:'https://maps.google.com/?q=Namdaemun+Market',nv:'https://map.naver.com/v5/search/남대문시장'},
+    {t:'14:00',title:'Namsan Tower (남산타워)',loc:'Namsan-gil, Yongsan-gu',stn:'Myeongdong Stn → Cable Car',tr:'walk',cost:12000,note:'Take the cable car up. Lock a love lock. Views over all of Seoul — beautiful in the afternoon!',gm:'https://maps.google.com/?q=N+Seoul+Tower',nv:'https://map.naver.com/v5/search/남산타워'},
+    {t:'16:30',title:'Itaewon Halal Food Street',loc:'Itaewon-dong, Yongsan-gu',stn:'Itaewon Stn · Line 6 · Exit 1',tr:'subway',cost:18000,note:'Many halal-certified restaurants. Turbans, Makan (Malaysian!), Omar Shariff. Familiar taste!',gm:'https://maps.google.com/?q=Itaewon+Halal+Street',nv:'https://map.naver.com/v5/search/이태원 할랄'},
+    {t:'19:30',title:'Dongdaemun Night Shopping (동대문)',loc:'Dongdaemun Fashion Town',stn:'Dongdaemun Stn · Lines 1/4',tr:'subway',cost:40000,note:'Open until 5am! Final fashion haul. Doota, Hello apM, Migliore for clothes & accessories.',gm:'https://maps.google.com/?q=Dongdaemun+Fashion+Town',nv:'https://map.naver.com/v5/search/동대문 패션타운'},
+  ]},
+  {n:10,label:'Day 10',date:'Sat',day:'29',mon:'Nov',region:'Seoul',
+   theme:'Last Day — Souvenirs & Departure',tags:['shopping','food'],
+   accom:{name:'✈ Fly home tonight',stn:'Incheon International Airport',price:''},
+   acts:[
+    {t:'09:00',title:'Gyeongui Line Forest Park',loc:'Gyeongui Forest Road, Mapo-gu',stn:'Gongdeok Stn · Lines 5/6/Airport',tr:'subway',cost:0,note:'Beautiful linear park. Last peaceful Seoul morning. Watch locals jog and cycle.',gm:'https://maps.google.com/?q=Gyeongui+Line+Forest+Park',nv:'https://map.naver.com/v5/search/경의선숲길'},
+    {t:'10:30',title:'Final souvenir run: Insadong',loc:'Insadong-gil, Jongno-gu',stn:'Anguk Stn · Line 3',tr:'subway',cost:20000,note:'Last chance: traditional crafts, persimmon tea, Korean fans, hanji goods. Best quality.',gm:'https://maps.google.com/?q=Insadong+Seoul',nv:'https://map.naver.com/v5/search/인사동'},
+    {t:'12:30',title:'Farewell lunch: Myeongdong Kyoja',loc:'Myeongdong-gil, Jung-gu',stn:'Myeongdong Stn · Line 4 · Exit 8',tr:'subway',cost:12000,note:'Famous kalguksu & dumplings. Always a queue — worth it! Classic last Seoul meal.',gm:'https://maps.google.com/?q=Myeongdong+Kyoja',nv:'https://map.naver.com/v5/search/명동교자'},
+    {t:'14:30',title:'Head to Incheon Airport (ICN)',loc:'Incheon International Airport',stn:'Seoul Station → AREX Express',tr:'train',cost:9000,note:'AREX express ~43 min. Check in 3 hours early for international. Last Korean snacks at duty-free!',gm:'https://maps.google.com/?q=Incheon+International+Airport',nv:'https://map.naver.com/v5/search/인천공항'},
+    {t:'18:00',title:'Fly home ✈ 안녕히 가세요!',loc:'Incheon Airport · ICN',stn:'Gate departure',tr:'train',cost:0,note:'Goodbye Korea! Pack those ramyeon packs, snacks and memories well. 안녕히 가세요 🙏',gm:'https://maps.google.com/?q=Incheon+International+Airport',nv:'https://map.naver.com/v5/search/인천국제공항'},
+  ]},
+];
+
+// ─── CAT COLOURS ──────────────────────────
+const CAT_COLORS={Food:'#e07b4f',Transport:'#4a90d9',Accommodation:'#6c5ce7',Shopping:'#e84393',Activities:'#00b894',Other:'#a0a0a0'};
+const BUDGET_GUIDE = [
+  {
+    icon:'🏨', cat:'Accommodation',
+    lo:60000, hi:120000, avg:85000,
+    tip:'Budget guesthouses from KRW 50k, mid-range hotels KRW 80–120k/night. Book early for Myeongdong & Seogwipo areas.',
+    region:'Both'
+  },
+  {
+    icon:'🍜', cat:'Meals (3× per day)',
+    lo:35000, hi:80000, avg:55000,
+    tip:'Street food & convenience store ~KRW 5–8k each. Sit-down lunch ~KRW 12k, dinner ~KRW 20–35k. Budget more for BBQ nights.',
+    region:'Both'
+  },
+  {
+    icon:'☕', cat:'Cafe & Snacks',
+    lo:8000, hi:20000, avg:13000,
+    tip:'Korea has incredible cafe culture. Budget at least 1–2 cafes per day. Iced Americano ~KRW 4–5k, specialty drinks KRW 7–9k.',
+    region:'Both'
+  },
+  {
+    icon:'🎯', cat:'Activities & Entry Fees',
+    lo:10000, hi:40000, avg:22000,
+    tip:'Palaces KRW 3k, N Seoul Tower KRW 12k, Lotte Observatory KRW 29k, Jeju lava cave KRW 4k. Free: Bukchon, streams, temples.',
+    region:'Both'
+  },
+  {
+    icon:'🛍', cat:'Shopping',
+    lo:30000, hi:150000, avg:70000,
+    tip:'Highly personal. Myeongdong & Dongdaemun for fashion, Olive Young for skincare. Set a daily cap to avoid overspending!',
+    region:'Seoul'
+  },
+  {
+    icon:'🌋', cat:'Jeju Car Rental',
+    lo:45000, hi:75000, avg:58000,
+    tip:'Essential in Jeju — public transport is limited. Compact cars ~KRW 45–60k/day. Book online before departure for best rates.',
+    region:'Jeju'
+  },
+  {
+    icon:'🎁', cat:'Souvenirs',
+    lo:20000, hi:80000, avg:40000,
+    tip:'Best spots: Insadong (traditional crafts), Myeongdong (K-beauty), Jeju airport (Hallabong snacks, black sesame cookies).',
+    region:'Both'
+  },
+];
+
+// ─── EXPENSES STATE ───────────────────────
+let expenses=JSON.parse(localStorage.getItem('ktrip_v3')||'[]');
+function saveExp(){localStorage.setItem('ktrip_v3',JSON.stringify(expenses));}
+
+let pretripExpenses=JSON.parse(localStorage.getItem('ktrip_pretrip')||'[]');
+let tripBudgetRM=parseFloat(localStorage.getItem('ktrip_tripbudget')||'0');
+
+// ─── ITINERARY EDIT STATE ─────────────────
+
+// ─── NAVIGATION ───────────────────────────
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(b=>b.className='bnav-item');
+  document.getElementById('page-'+id).classList.add('active');
+  const btn=document.querySelector(`[data-p="${id}"]`);
+  const clsMap={home:'home',pretrip:'pretrip',itinerary:'itin',currency:'cur',expenses:'exp'};
+  if(btn) btn.classList.add('act-'+(clsMap[id]||id));
+  document.getElementById('mainScroll').scrollTop=0;
+  document.getElementById('scrollTopBtn').classList.remove('visible');
+}
+
+// ─── SCROLL TOP (FIX 5) ───────────────────
+document.getElementById('mainScroll').addEventListener('scroll',function(){
+  const btn=document.getElementById('scrollTopBtn');
+  this.scrollTop>180 ? btn.classList.add('visible') : btn.classList.remove('visible');
+});
+function scrollToTop(){
+  document.getElementById('mainScroll').scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── TRANSPORT BADGE ──────────────────────
+const TR_ICON={subway:'🚇',walk:'🚶',bus:'🚌',taxi:'🚖',ferry:'✈️',train:'🚄'};
+const TR_CLS ={subway:'tb-subway',walk:'tb-walk',bus:'tb-bus',taxi:'tb-taxi',ferry:'tb-ferry',train:'tb-train'};
+function tbadge(t){return `<span class="tbadge ${TR_CLS[t]||'tb-subway'}">${TR_ICON[t]||'🚇'} ${t}</span>`;}
+
+// ─── RENDER ITINERARY ─────────────────────
+function renderItinerary(){
+  // Phase pills
+  const phases=[
+    {label:'Seoul · Nov 20–23',firstDay:1,cls:'ps'},
+    {label:'Jeju · Nov 23–28',firstDay:4,cls:'pj'},
+    {label:'Seoul · Nov 28–29',firstDay:9,cls:'ps'},
+  ];
+  document.getElementById('phase-bar').innerHTML=phases.map((p,i)=>
+    `<div class="phase-pill ${i===0?p.cls:''}" onclick="scrollToDay(${p.firstDay},this,'${p.cls}')">${p.label}</div>`
+  ).join('');
+
+  // Day cards
+  document.getElementById('all-days').innerHTML=DAYS.map(d=>{
+    const chipCls=d.region==='Jeju'?'jeju-chip':d.region.includes('→')?'trans-chip':'seoul-chip';
+    const regionColor=d.region==='Jeju'?'var(--jeju)':d.region.includes('→')?'#8a6000':'var(--seoul)';
+    const tagHtml=d.tags.map(t=>`<span class="tag tag-${t}">${t}</span>`).join('');
+
+    // Accommodation strip — now editable
+    const accomHtml=`<div class="accom-strip">
+      <span style="font-size:.95rem">🏨</span>
+      <div class="accom-main">
+        <div class="accom-name">${d.accom.name}</div>
+        <div class="accom-row">
+          <span class="accom-stn">${d.accom.stn}</span>
+          ${d.accom.price?`<span class="accom-price">${d.accom.price}</span>`:''}
+        </div>
+      </div>
+      <button class="act-edit-btn accom-edit-btn" onclick="openAccomEdit(${d.n})" title="Edit accommodation">✏️</button>
+    </div>`;
+
+    // Activities with edit + remove
+    const actsHtml=d.acts.map((a,ai)=>`
+      <div class="activity" id="act-${d.n}-${ai}">
+        <div class="act-time">${a.t}</div>
+        <div class="act-body">
+          <div class="act-title-row">
+            <div class="act-title">${a.title}</div>
+            <div class="act-action-btns">
+              <button class="act-edit-btn" onclick="openEdit(${d.n},${ai})" title="Edit">✏️</button>
+              <button class="act-remove-btn" onclick="removeAct(${d.n},${ai})" title="Remove">🗑</button>
+            </div>
+          </div>
+          <div class="act-loc">📍 ${a.loc}</div>
+          <div class="act-meta">
+            ${tbadge(a.tr)}
+            <span class="stn-pill">🚉 ${a.stn}</span>
+            ${a.cost>0?`<span class="act-cost">₩${a.cost.toLocaleString()}</span>`:'<span class="free-badge">Free</span>'}
+          </div>
+          <div class="map-row">
+            <a class="map-btn" href="${a.gm}" target="_blank">📍 Google Maps</a>
+            <a class="map-btn" href="${a.nv}" target="_blank">🗺 Naver Maps</a>
+          </div>
+          ${a.note?`<div class="act-note">💡 ${a.note}</div>`:''}
+        </div>
+      </div>`).join('');
+
+    // Add activity button at bottom of day
+    const addActBtn=`<div class="add-act-row">
+      <button class="add-act-btn" onclick="openAddAct(${d.n})">＋ Add Activity</button>
+    </div>`;
+
+    return `<div class="day-card" id="day-${d.n}">
+      <div class="day-hdr" onclick="toggleDay(${d.n})">
+        <div class="day-date-chip ${chipCls}">${d.date}<br>${d.day}<br>${d.mon}</div>
+        <div class="day-info">
+          <div class="day-region-lbl" style="color:${regionColor}">${d.region}</div>
+          <div class="day-theme">${d.theme}</div>
+          <div class="day-tags">${tagHtml}</div>
+        </div>
+        <div class="day-toggle" id="dtgl-${d.n}">＋</div>
+      </div>
+      <div class="day-body" id="dbody-${d.n}">
+        ${accomHtml}
+        <div>${actsHtml}</div>
+        ${addActBtn}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleDay(n){
+  const body=document.getElementById('dbody-'+n);
+  const tgl=document.getElementById('dtgl-'+n);
+  const open=body.classList.toggle('open');
+  tgl.textContent=open?'－':'＋';
+}
+function scrollToDay(n,pill,cls){
+  document.querySelectorAll('.phase-pill').forEach(p=>p.classList.remove('ps','pj'));
+  pill.classList.add(cls);
+  showPage('itinerary');
+  setTimeout(()=>{
+    const el=document.getElementById('day-'+n);
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  },120);
+}
+
+// ─── ACTIVITY EDIT / ADD / REMOVE ────────
+let editDay=null, editAct=null, addActMode=false, accomDay=null;
+
+function openEdit(dayN,actIdx){
+  editDay=dayN; editAct=actIdx; addActMode=false;
+  const d=DAYS.find(d=>d.n===dayN);
+  const a=d.acts[actIdx];
+  document.getElementById('editModalTitle').textContent='Edit Activity';
+  document.getElementById('m-title').value=a.title;
+  document.getElementById('m-loc').value=a.loc;
+  document.getElementById('m-time').value=a.t;
+  document.getElementById('m-cost').value=a.cost;
+  document.getElementById('m-tr').value=a.tr;
+  document.getElementById('m-stn').value=a.stn;
+  document.getElementById('m-gm').value=a.gm||'';
+  document.getElementById('m-nv').value=a.nv||'';
+  document.getElementById('m-note').value=a.note||'';
+  document.getElementById('editModal').classList.add('open');
+}
+
+function openAddAct(dayN){
+  editDay=dayN; editAct=null; addActMode=true;
+  document.getElementById('editModalTitle').textContent='Add Activity';
+  document.getElementById('m-title').value='';
+  document.getElementById('m-loc').value='';
+  document.getElementById('m-time').value='';
+  document.getElementById('m-cost').value='';
+  document.getElementById('m-tr').value='subway';
+  document.getElementById('m-stn').value='';
+  document.getElementById('m-gm').value='';
+  document.getElementById('m-nv').value='';
+  document.getElementById('m-note').value='';
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeModal(e){
+  if(!e||e.target===document.getElementById('editModal'))
+    document.getElementById('editModal').classList.remove('open');
+}
+
+function saveEdit(){
+  const title=document.getElementById('m-title').value.trim();
+  if(!title){toast('Please enter a title');return;}
+  const newAct={
+    title,
+    loc  : document.getElementById('m-loc').value.trim()||'—',
+    t    : document.getElementById('m-time').value.trim()||'—',
+    cost : parseInt(document.getElementById('m-cost').value)||0,
+    tr   : document.getElementById('m-tr').value,
+    stn  : document.getElementById('m-stn').value.trim()||'—',
+    gm   : document.getElementById('m-gm').value.trim()||'https://maps.google.com/',
+    nv   : document.getElementById('m-nv').value.trim()||'https://map.naver.com/',
+    note : document.getElementById('m-note').value.trim(),
+  };
+  const d=DAYS.find(d=>d.n===editDay);
+  if(addActMode){
+    d.acts.push(newAct);
+  } else {
+    d.acts[editAct]={...d.acts[editAct],...newAct};
+  }
+  document.getElementById('editModal').classList.remove('open');
+  // Re-open the day after render
+  const wasOpen=document.getElementById('dbody-'+editDay)?.classList.contains('open');
+  renderItinerary();
+  if(wasOpen) openDayBody(editDay);
+  toast(addActMode?'Activity added ✓':'Activity updated ✓');
+}
+
+function removeAct(dayN,actIdx){
+  if(!confirm('Remove this activity?')) return;
+  const d=DAYS.find(d=>d.n===dayN);
+  d.acts.splice(actIdx,1);
+  const wasOpen=document.getElementById('dbody-'+dayN)?.classList.contains('open');
+  renderItinerary();
+  if(wasOpen) openDayBody(dayN);
+  toast('Activity removed');
+}
+
+function openDayBody(n){
+  const body=document.getElementById('dbody-'+n);
+  const tgl=document.getElementById('dtgl-'+n);
+  if(body){body.classList.add('open');}
+  if(tgl){tgl.textContent='－';}
+}
+
+// ─── ACCOMMODATION EDIT ───────────────────
+function openAccomEdit(dayN){
+  accomDay=dayN;
+  const d=DAYS.find(d=>d.n===dayN);
+  document.getElementById('ac-name').value=d.accom.name||'';
+  document.getElementById('ac-stn').value=d.accom.stn||'';
+  document.getElementById('ac-price').value=d.accom.price||'';
+  document.getElementById('accomModal').classList.add('open');
+}
+function closeAccomModal(e){
+  if(!e||e.target===document.getElementById('accomModal'))
+    document.getElementById('accomModal').classList.remove('open');
+}
+function saveAccom(){
+  const d=DAYS.find(d=>d.n===accomDay);
+  d.accom.name  =document.getElementById('ac-name').value.trim();
+  d.accom.stn   =document.getElementById('ac-stn').value.trim();
+  d.accom.price =document.getElementById('ac-price').value.trim();
+  document.getElementById('accomModal').classList.remove('open');
+  const wasOpen=document.getElementById('dbody-'+accomDay)?.classList.contains('open');
+  renderItinerary();
+  if(wasOpen) openDayBody(accomDay);
+  toast('Accommodation updated ✓');
+}
+
+// ─── CURRENCY (FIX 6 — comma formatting) ─
+let rmRaw='', krwRaw='';
+
+function fmtKRW(n){ return n?Math.round(n).toLocaleString('en-US'):''; }
+function fmtRM(n) { return n?parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):''; }
+function parseNum(s){ return parseFloat(s.replace(/,/g,''))||0; }
+
+document.getElementById('rm-input').addEventListener('input',function(){
+  const raw=this.value.replace(/,/g,'');
+  if(raw===''||raw==='.'){krwRaw='';document.getElementById('krw-input').value='';return;}
+  const n=parseFloat(raw);
+  if(!isNaN(n)){
+    krwRaw=Math.round(n*RATE);
+    document.getElementById('krw-input').value=fmtKRW(krwRaw);
+  }
+});
+document.getElementById('rm-input').addEventListener('blur',function(){
+  const raw=this.value.replace(/,/g,'');
+  const n=parseFloat(raw);
+  if(!isNaN(n)) this.value=fmtRM(n);
+});
+
+document.getElementById('krw-input').addEventListener('input',function(){
+  const raw=this.value.replace(/,/g,'');
+  if(raw===''){rmRaw='';document.getElementById('rm-input').value='';return;}
+  const n=parseFloat(raw);
+  if(!isNaN(n)){
+    rmRaw=(n/RATE);
+    document.getElementById('rm-input').value=fmtRM(rmRaw);
+  }
+});
+document.getElementById('krw-input').addEventListener('blur',function(){
+  const raw=this.value.replace(/,/g,'');
+  const n=parseFloat(raw);
+  if(!isNaN(n)) this.value=fmtKRW(n);
+});
+
+function swapCur(){
+  const rm=document.getElementById('rm-input').value;
+  const krw=document.getElementById('krw-input').value;
+  document.getElementById('rm-input').value=krw?(parseNum(krw)/RATE).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
+  document.getElementById('krw-input').value=rm?fmtKRW(parseNum(rm)*RATE):'';
+}
+
+function renderBudgetGuide(){
+  // Summary totals
+  const totalLo  = BUDGET_GUIDE.reduce((s,c)=>s+c.lo,0);
+  const totalHi  = BUDGET_GUIDE.reduce((s,c)=>s+c.hi,0);
+  const totalAvg = BUDGET_GUIDE.reduce((s,c)=>s+c.avg,0);
+  document.getElementById('bdg-summary').innerHTML=`
+    <div class="bdg-summary-inner">
+      <div class="bdg-sum-col">
+        <div class="bdg-sum-lbl">Est. Daily Total</div>
+        <div class="bdg-sum-avg">KRW ${totalAvg.toLocaleString()}</div>
+        <div class="bdg-sum-rm">≈ RM ${(totalAvg/RATE).toFixed(0)}/day</div>
+      </div>
+      <div class="bdg-sum-divider"></div>
+      <div class="bdg-sum-col">
+        <div class="bdg-sum-lbl">Low estimate</div>
+        <div class="bdg-sum-range">KRW ${totalLo.toLocaleString()}</div>
+        <div class="bdg-sum-rm">≈ RM ${(totalLo/RATE).toFixed(0)}</div>
+      </div>
+      <div class="bdg-sum-divider"></div>
+      <div class="bdg-sum-col">
+        <div class="bdg-sum-lbl">High estimate</div>
+        <div class="bdg-sum-range">KRW ${totalHi.toLocaleString()}</div>
+        <div class="bdg-sum-rm">≈ RM ${(totalHi/RATE).toFixed(0)}</div>
+      </div>
+    </div>`;
+
+  // Category cards
+  document.getElementById('bdg-list').innerHTML=BUDGET_GUIDE.map(c=>{
+    const regionBadge = c.region==='Jeju'
+      ? `<span class="bdg-region bdg-jeju">Jeju only</span>`
+      : c.region==='Seoul'
+      ? `<span class="bdg-region bdg-seoul">Seoul</span>`
+      : '';
+    const pctLo = 0;
+    const pctAvg = Math.round(((c.avg-c.lo)/(c.hi-c.lo))*100);
+    return `<div class="bdg-card">
+      <div class="bdg-card-top">
+        <div class="bdg-card-left">
+          <div class="bdg-icon">${c.icon}</div>
+          <div>
+            <div class="bdg-cat">${c.cat} ${regionBadge}</div>
+            <div class="bdg-avg">KRW ${c.avg.toLocaleString()} <span class="bdg-avg-rm">≈ RM ${(c.avg/RATE).toFixed(0)}/day</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="bdg-bar-row">
+        <span class="bdg-range-lbl">KRW ${c.lo.toLocaleString()}</span>
+        <div class="bdg-bar-track">
+          <div class="bdg-bar-fill" style="left:0;width:${pctAvg}%"></div>
+          <div class="bdg-bar-marker" style="left:${pctAvg}%"></div>
+        </div>
+        <span class="bdg-range-lbl">KRW ${c.hi.toLocaleString()}</span>
+      </div>
+      <div class="bdg-range-sub">
+        RM ${(c.lo/RATE).toFixed(0)} – RM ${(c.hi/RATE).toFixed(0)}/day &nbsp;·&nbsp; avg RM ${(c.avg/RATE).toFixed(0)}
+      </div>
+      <div class="bdg-tip">💡 ${c.tip}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── EXPENSES STATE ───────────────────────
+let cashBalance = parseInt(localStorage.getItem('ktrip_cashbal')||'0');
+let wiseBalance = parseInt(localStorage.getItem('ktrip_wisebal')||'0');
+let tripBudget  = parseInt(localStorage.getItem('ktrip_budget')||'0');
+let txnEditId   = null;
+
+// ── Wise modal ──
+function openWiseModal(){
+  document.getElementById('wise-bal-input').value = wiseBalance||'';
+  updateWisePreview();
+  document.getElementById('wiseModal').classList.add('open');
+}
+function closeWiseModal(e){
+  if(!e||e.target===document.getElementById('wiseModal'))
+    document.getElementById('wiseModal').classList.remove('open');
+}
+document.getElementById('wise-bal-input').addEventListener('input', updateWisePreview);
+function updateWisePreview(){
+  const v = parseFloat(document.getElementById('wise-bal-input').value)||0;
+  document.getElementById('wise-bal-preview').textContent = v
+    ? `≈ RM ${(v/RATE).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`
+    : '≈ RM 0.00';
+}
+function saveWiseBal(){
+  const v = parseFloat(document.getElementById('wise-bal-input').value)||0;
+  wiseBalance = v;
+  localStorage.setItem('ktrip_wisebal', v);
+  document.getElementById('wiseModal').classList.remove('open');
+  renderExp();
+  toast(`Wise balance set: KRW ${v.toLocaleString()}`);
+}
+
+// ── Quick-add (FAB) ──
+function openQuickAdd(){
+  document.getElementById('qa-desc').value='';
+  document.getElementById('qa-amt').value='';
+  document.getElementById('qa-cat').value='Food';
+  document.getElementById('qa-pay').value='💵 Cash';
+  document.getElementById('qa-rgn').value='Seoul';
+  document.getElementById('qa-date').valueAsDate=new Date();
+  // Reset chip highlights
+  document.querySelectorAll('.qa-chip').forEach(c=>c.classList.remove('selected'));
+  document.querySelector('.qa-chip')?.classList.add('selected');
+  document.getElementById('quickAddModal').classList.add('open');
+  setTimeout(()=>document.getElementById('qa-desc').focus(),120);
+}
+function closeQuickAdd(e){
+  if(!e||e.target===document.getElementById('quickAddModal'))
+    document.getElementById('quickAddModal').classList.remove('open');
+}
+function setQaCat(cat){
+  document.getElementById('qa-cat').value=cat;
+  document.querySelectorAll('.qa-chip').forEach(c=>{
+    c.classList.toggle('selected', c.textContent.includes(cat));
+  });
+}
+function submitQuickAdd(){
+  const desc=document.getElementById('qa-desc').value.trim();
+  const amt=parseFloat(document.getElementById('qa-amt').value);
+  if(!desc||!amt||amt<=0){toast('Please enter description & amount');return;}
+  expenses.push({
+    id:Date.now(),
+    desc,amt,
+    cat:document.getElementById('qa-cat').value,
+    pay:document.getElementById('qa-pay').value,
+    rgn:document.getElementById('qa-rgn').value,
+    date:document.getElementById('qa-date').value||new Date().toISOString().slice(0,10),
+  });
+  saveExp();
+  document.getElementById('quickAddModal').classList.remove('open');
+  renderExp(); updateHome();
+  toast(`Added KRW ${amt.toLocaleString()} ✓`);
+}
+// ── Cash on Hand modal ──
+function openCashModal(){
+  document.getElementById('cash-bal-input').value = cashBalance||'';
+  updateCashBalPreview();
+  document.getElementById('cashModal').classList.add('open');
+}
+function closeCashModal(e){
+  if(!e||e.target===document.getElementById('cashModal'))
+    document.getElementById('cashModal').classList.remove('open');
+}
+document.getElementById('cash-bal-input').addEventListener('input', updateCashBalPreview);
+function updateCashBalPreview(){
+  const v = parseFloat(document.getElementById('cash-bal-input').value)||0;
+  document.getElementById('cash-bal-preview').textContent = v
+    ? `≈ RM ${(v/RATE).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`
+    : '≈ RM 0.00';
+}
+function saveCashBal(){
+  const v = parseFloat(document.getElementById('cash-bal-input').value)||0;
+  cashBalance = v;
+  localStorage.setItem('ktrip_cashbal', v);
+  document.getElementById('cashModal').classList.remove('open');
+  renderExp(); updateHome();
+  toast(`Cash balance set: ₩${v.toLocaleString()}`);
+}
+
+// ── Budget modal ──
+function openBudgetModal(){
+  document.getElementById('budget-krw-input').value = tripBudget||'';
+  updateBudgetPreview();
+  document.getElementById('budgetModal').classList.add('open');
+}
+function closeBudgetModal(e){
+  if(!e||e.target===document.getElementById('budgetModal'))
+    document.getElementById('budgetModal').classList.remove('open');
+}
+document.getElementById('budget-krw-input').addEventListener('input', updateBudgetPreview);
+function updateBudgetPreview(){
+  const v = parseFloat(document.getElementById('budget-krw-input').value)||0;
+  document.getElementById('budget-rm-preview').textContent = v
+    ? `≈ RM ${(v/RATE).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`
+    : '≈ RM 0.00';
+}
+function saveBudget(){
+  const v = parseFloat(document.getElementById('budget-krw-input').value)||0;
+  tripBudget = v;
+  localStorage.setItem('ktrip_budget', v);
+  document.getElementById('budgetModal').classList.remove('open');
+  renderExp(); updateHome();
+  toast(`Budget set: ₩${v.toLocaleString()}`);
+}
+
+// ── Transaction edit modal (Fix 1) ──
+function openTxnEdit(id){
+  const e = expenses.find(x=>x.id===id);
+  if(!e) return;
+  txnEditId = id;
+  document.getElementById('te-desc').value = e.desc;
+  document.getElementById('te-amt').value  = e.amt;
+  document.getElementById('te-cat').value  = e.cat;
+  document.getElementById('te-pay').value  = e.pay||'💵 Cash';
+  document.getElementById('te-rgn').value  = e.rgn;
+  document.getElementById('te-date').value = e.date;
+  document.getElementById('txnEditModal').classList.add('open');
+}
+function closeTxnModal(ev){
+  if(!ev||ev.target===document.getElementById('txnEditModal'))
+    document.getElementById('txnEditModal').classList.remove('open');
+}
+function saveTxnEdit(){
+  const idx = expenses.findIndex(x=>x.id===txnEditId);
+  if(idx<0) return;
+  const amt = parseFloat(document.getElementById('te-amt').value)||0;
+  if(!document.getElementById('te-desc').value.trim()||amt<=0){toast('Description & amount required');return;}
+  expenses[idx] = {
+    ...expenses[idx],
+    desc: document.getElementById('te-desc').value.trim(),
+    amt,
+    cat:  document.getElementById('te-cat').value,
+    pay:  document.getElementById('te-pay').value,
+    rgn:  document.getElementById('te-rgn').value,
+    date: document.getElementById('te-date').value,
+  };
+  saveExp();
+  document.getElementById('txnEditModal').classList.remove('open');
+  renderExp(); updateHome();
+  toast('Transaction updated ✓');
+}
+
+function addExp(){
+  const desc = document.getElementById('e-desc').value.trim();
+  const amt  = parseFloat(document.getElementById('e-amt').value);
+  const cat  = document.getElementById('e-cat').value;
+  const pay  = document.getElementById('e-pay').value;
+  const rgn  = document.getElementById('e-rgn').value;
+  const date = document.getElementById('e-date').value || new Date().toISOString().slice(0,10);
+  if(!desc||!amt||amt<=0){toast('Please enter description & amount');return;}
+  expenses.push({id:Date.now(),desc,amt,cat,pay,rgn,date});
+  saveExp();
+  document.getElementById('e-desc').value='';
+  document.getElementById('e-amt').value='';
+  renderExp(); updateHome();
+  toast(`Added ₩${amt.toLocaleString()} · ${cat}`);
+}
+function delExp(id){
+  expenses=expenses.filter(e=>e.id!==id);
+  saveExp(); renderExp(); updateHome();
+}
+
+function renderExp(){
+  const total = expenses.reduce((s,e)=>s+e.amt,0);
+
+  // ── Row 1: Total Spent ──
+  document.getElementById('tot-krw').textContent = 'KRW '+total.toLocaleString();
+  document.getElementById('tot-rm').textContent  = 'RM '+(total/RATE).toFixed(2);
+
+  // ── Row 1: Credit Card spent ──
+  const ccTotal = expenses.filter(e=>e.pay==='💳 Credit Card').reduce((s,e)=>s+e.amt,0);
+  document.getElementById('cc-spent').textContent    = 'KRW '+ccTotal.toLocaleString();
+  document.getElementById('cc-spent-rm').textContent = 'RM '+(ccTotal/RATE).toFixed(2);
+
+  // ── Row 2: Cash balance ──
+  if(cashBalance>0){
+    document.getElementById('cash-balance').textContent     = 'KRW '+cashBalance.toLocaleString();
+    document.getElementById('cash-balance-sub').textContent = 'RM '+(cashBalance/RATE).toFixed(2);
+  } else {
+    document.getElementById('cash-balance').textContent     = '—';
+    document.getElementById('cash-balance-sub').textContent = 'Tap to set';
+  }
+
+  // ── Row 2: Wise balance ──
+  if(wiseBalance>0){
+    document.getElementById('wise-balance').textContent     = 'KRW '+wiseBalance.toLocaleString();
+    document.getElementById('wise-balance-sub').textContent = 'RM '+(wiseBalance/RATE).toFixed(2);
+  } else {
+    document.getElementById('wise-balance').textContent     = '—';
+    document.getElementById('wise-balance-sub').textContent = 'Tap to set';
+  }
+
+  // ── Bottom: Remaining = (Cash + Wise) − Spent ──
+  const totalBudget = cashBalance + wiseBalance;
+  const remEl = document.getElementById('budget-remain');
+  if(totalBudget > 0){
+    const rem = totalBudget - total;
+    remEl.textContent  = rem>=0 ? 'KRW '+rem.toLocaleString() : '-KRW '+Math.abs(rem).toLocaleString();
+    remEl.style.color  = rem<0 ? 'var(--rust)' : 'var(--gold)';
+    document.getElementById('budget-remain-sub').textContent = rem>=0
+      ? 'RM '+(rem/RATE).toFixed(2)+' left'
+      : '⚠️ Over budget!';
+    const pct = Math.min((total/totalBudget)*100,100);
+    const fill = document.getElementById('cash-bar-fill');
+    fill.style.width  = pct.toFixed(1)+'%';
+    fill.className    = 'cash-bar-fill'+(pct>=90?' danger':pct>=70?' warn':'');
+    document.getElementById('cash-bar-pct').textContent    = pct.toFixed(0)+'% of budget used';
+    document.getElementById('cash-budget-lbl').textContent = 'Budget: KRW '+totalBudget.toLocaleString();
+  } else {
+    remEl.textContent = '—'; remEl.style.color = 'var(--gold)';
+    document.getElementById('budget-remain-sub').textContent = 'Cash + Wise − Spent';
+    document.getElementById('cash-bar-fill').style.width    = '0%';
+    document.getElementById('cash-bar-pct').textContent     = '—';
+    document.getElementById('cash-budget-lbl').textContent  = 'Set Cash or Wise to track';
+  }
+
+  // ── Category bars ──
+  const cats = Object.keys(CAT_COLORS);
+  const catData = cats.map(c=>({name:c,color:CAT_COLORS[c],total:expenses.filter(e=>e.cat===c).reduce((s,e)=>s+e.amt,0)})).filter(c=>c.total>0);
+  const maxC = Math.max(...catData.map(c=>c.total),1);
+  document.getElementById('cat-bars').innerHTML = catData.length
+    ? catData.map(c=>`<div class="cat-row">
+        <div class="cat-dot" style="background:${c.color}"></div>
+        <div class="cat-name">${c.name}</div>
+        <div class="cat-bar-bg"><div class="cat-bar" style="width:${(c.total/maxC*100).toFixed(0)}%;background:${c.color}"></div></div>
+        <div class="cat-amt">KRW ${c.total.toLocaleString()}</div>
+      </div>`).join('')
+    : '<div style="font-size:.72rem;color:var(--muted);text-align:center;padding:.4rem">Add expenses to see breakdown</div>';
+
+  // ── Expense list ──
+  const listEl = document.getElementById('exp-list-body');
+  if(!expenses.length){listEl.innerHTML='<div class="empty-state">No expenses yet 🧾<br>Add your first one!</div>';return;}
+  const PAY_ICON = {'💵 Cash':'💵','💳 Credit Card':'💳','🌐 Wise':'🌐','📱 Other':'📱'};
+  listEl.innerHTML = [...expenses].sort((a,b)=>b.id-a.id).slice(0,60).map(e=>`
+    <div class="exp-item">
+      <div class="exp-dot" style="background:${CAT_COLORS[e.cat]}"></div>
+      <div class="exp-desc">${e.desc}</div>
+      <div class="exp-badges">
+        <span class="exp-pay">${PAY_ICON[e.pay]||'💳'}</span>
+        <span class="exp-rgn rgn-${e.rgn}">${e.rgn}</span>
+      </div>
+      <div class="exp-amt">KRW ${e.amt.toLocaleString()}</div>
+      <button class="exp-edit" onclick="openTxnEdit(${e.id})" title="Edit">✏️</button>
+      <button class="exp-del" onclick="delExp(${e.id})">✕</button>
+    </div>`).join('');
+}
+function updateHome(){
+  const intripKRW    = expenses.reduce((s,e)=>s+e.amt,0);
+  const intripRM     = intripKRW / RATE;
+  const pretripRM    = pretripExpenses.reduce((s,e)=>s+e.amt,0);
+  const totalSpentRM = pretripRM + intripRM;
+
+  // Master budget card
+  if(tripBudgetRM > 0){
+    document.getElementById('mb-budget-val').textContent = 'RM '+tripBudgetRM.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const remainRM = tripBudgetRM - totalSpentRM;
+    const ptPct    = Math.min((pretripRM/tripBudgetRM)*100,100);
+    const itPct    = Math.min((intripRM/tripBudgetRM)*100,100 - ptPct);
+    document.getElementById('mb-bar-pretrip').style.width = ptPct.toFixed(1)+'%';
+    document.getElementById('mb-bar-intrip').style.width  = itPct.toFixed(1)+'%';
+    const usedPct  = Math.min(((pretripRM+intripRM)/tripBudgetRM)*100,100);
+    document.getElementById('mb-bar-pct').textContent = usedPct.toFixed(0)+'% of budget used';
+    document.getElementById('mb-remain').textContent  = remainRM>=0
+      ? 'RM '+remainRM.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})
+      : '-RM '+Math.abs(remainRM).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    document.getElementById('mb-remain').style.color = remainRM<0 ? 'var(--rust)' : 'var(--gold)';
+  } else {
+    document.getElementById('mb-budget-val').textContent = 'RM —';
+    document.getElementById('mb-bar-pretrip').style.width='0%';
+    document.getElementById('mb-bar-intrip').style.width='0%';
+    document.getElementById('mb-bar-pct').textContent='Set a budget to track progress';
+    document.getElementById('mb-remain').textContent='RM —';
+    document.getElementById('mb-remain').style.color='var(--gold)';
+  }
+  document.getElementById('mb-pretrip').textContent = 'RM '+pretripRM.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('mb-intrip').textContent  = 'RM '+intripRM.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+// ─── TRIP BUDGET MODAL ────────────────────
+function openTripBudgetModal(){
+  document.getElementById('tb-input').value = tripBudgetRM||'';
+  updateTbPreview();
+  document.getElementById('tripBudgetModal').classList.add('open');
+}
+function closeTripBudgetModal(e){
+  if(!e||e.target===document.getElementById('tripBudgetModal'))
+    document.getElementById('tripBudgetModal').classList.remove('open');
+}
+document.getElementById('tb-input').addEventListener('input', updateTbPreview);
+function updateTbPreview(){
+  const v = parseFloat(document.getElementById('tb-input').value)||0;
+  document.getElementById('tb-krw-preview').textContent = v
+    ? '≈ KRW '+Math.round(v*RATE).toLocaleString()
+    : '≈ KRW 0';
+}
+function saveTripBudget(){
+  const v = parseFloat(document.getElementById('tb-input').value)||0;
+  tripBudgetRM = v;
+  localStorage.setItem('ktrip_tripbudget', v);
+  document.getElementById('tripBudgetModal').classList.remove('open');
+  updateHome();
+  toast('Trip budget set: RM '+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}));
+}
+
+// ─── PRE-TRIP EXPENSES ────────────────────
+const PT_CAT_COLOR = {
+  '✈️ Flights':'#4a90d9','🏨 Accommodation':'#6c5ce7','🚗 Car Rental':'#00b894',
+  '🛡 Travel Insurance':'#fd79a8','🎫 Tours / Tickets':'#fdcb6e',
+  '🪪 Visa Fees':'#e17055','📦 Other':'#a0a0a0'
+};
+
+function addPretrip(){
+  const desc = document.getElementById('pt-desc').value.trim();
+  const amt  = parseFloat(document.getElementById('pt-amt').value);
+  const cat  = document.getElementById('pt-cat').value;
+  const pay  = document.getElementById('pt-pay').value;
+  const date = document.getElementById('pt-date').value || new Date().toISOString().slice(0,10);
+  if(!desc||!amt||amt<=0){toast('Please enter description & amount');return;}
+  pretripExpenses.push({id:Date.now(),desc,amt,cat,pay,date});
+  savePT();
+  document.getElementById('pt-desc').value='';
+  document.getElementById('pt-amt').value='';
+  renderPretrip(); updateHome();
+  toast('Added RM '+amt.toFixed(2)+' · '+cat);
+}
+function savePT(){ localStorage.setItem('ktrip_pretrip',JSON.stringify(pretripExpenses)); }
+
+let ptEditId=null;
+function openPtEdit(id){
+  const e=pretripExpenses.find(x=>x.id===id); if(!e) return;
+  ptEditId=id;
+  document.getElementById('pte-desc').value=e.desc;
+  document.getElementById('pte-amt').value=e.amt;
+  document.getElementById('pte-cat').value=e.cat;
+  document.getElementById('pte-pay').value=e.pay;
+  document.getElementById('pte-date').value=e.date;
+  document.getElementById('ptEditModal').classList.add('open');
+}
+function closePtEdit(e){
+  if(!e||e.target===document.getElementById('ptEditModal'))
+    document.getElementById('ptEditModal').classList.remove('open');
+}
+function savePtEdit(){
+  const idx=pretripExpenses.findIndex(x=>x.id===ptEditId); if(idx<0) return;
+  const amt=parseFloat(document.getElementById('pte-amt').value)||0;
+  if(!document.getElementById('pte-desc').value.trim()||amt<=0){toast('Fill in all fields');return;}
+  pretripExpenses[idx]={
+    ...pretripExpenses[idx],
+    desc:document.getElementById('pte-desc').value.trim(),
+    amt, cat:document.getElementById('pte-cat').value,
+    pay:document.getElementById('pte-pay').value,
+    date:document.getElementById('pte-date').value,
+  };
+  savePT();
+  document.getElementById('ptEditModal').classList.remove('open');
+  renderPretrip(); updateHome();
+  toast('Updated ✓');
+}
+function delPretrip(id){
+  pretripExpenses=pretripExpenses.filter(e=>e.id!==id);
+  savePT(); renderPretrip(); updateHome();
+}
+function renderPretrip(){
+  const total=pretripExpenses.reduce((s,e)=>s+e.amt,0);
+  document.getElementById('pt-total-val').textContent='RM '+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('pt-total-krw').textContent='≈ KRW '+Math.round(total*RATE).toLocaleString();
+  document.getElementById('pt-count').textContent=pretripExpenses.length;
+
+  // Category breakdown pills
+  const catTotals={};
+  pretripExpenses.forEach(e=>{ catTotals[e.cat]=(catTotals[e.cat]||0)+e.amt; });
+  document.getElementById('pt-cat-pills').innerHTML=Object.entries(catTotals)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([cat,amt])=>`<div class="pt-cat-pill">${cat} <span>RM ${amt.toFixed(0)}</span></div>`)
+    .join('');
+
+  // Transaction list
+  const listEl=document.getElementById('pt-list-body');
+  if(!pretripExpenses.length){
+    listEl.innerHTML='<div class="empty-state">No pre-trip expenses yet 🧳<br>Add flights, hotels & more above.</div>';
+    return;
+  }
+  listEl.innerHTML=[...pretripExpenses].sort((a,b)=>b.id-a.id).map(e=>`
+    <div class="exp-item">
+      <div class="exp-dot" style="background:${PT_CAT_COLOR[e.cat]||'#aaa'}"></div>
+      <div class="exp-desc">${e.desc}</div>
+      <div class="exp-badges">
+        <span class="exp-pay">${e.pay.split(' ')[0]}</span>
+      </div>
+      <div class="exp-amt">RM ${e.amt.toFixed(2)}</div>
+      <button class="exp-edit" onclick="openPtEdit(${e.id})">✏️</button>
+      <button class="exp-del" onclick="delPretrip(${e.id})">✕</button>
+    </div>`).join('');
+}
+
+// ─── TOAST ────────────────────────────────
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+// ─── INIT ─────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('e-date').valueAsDate=new Date();
+  document.getElementById('pt-date').valueAsDate=new Date();
+  renderItinerary();
+  renderBudgetGuide();
+  renderExp();
+  renderPretrip();
+  updateHome();
+});
+</script>
+</body>
+</html>
